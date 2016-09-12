@@ -30,13 +30,17 @@ From a fresh installation of Ubuntu,
    * cuda_8.0.27.1_linux.run* (see : https://developer.nvidia.com/cuda-release-candidate-download )
    * cudnn-8.0-linux-x64-v5.1.tgz (see : https://developer.nvidia.com/cudnn )
 
-* The *setup-server.sh* script and *install* directory (and its content)  needs to be installed in the */root* directory (Make sure the *.run* scripts are executable (*chmod u+x *.run*))
-   *  *setup-server.sh* is the main installation script. You will be prompted to create a user login to work with the sandbox
+* The *setup-server.sh* script and *install* directory (and its content) need to be installed in a */root/Datascience-Sandbox-Installation/* directory. You might change the location or rename the directory, but in that case you will have to update the location in the *ressources* variable defined at the begining of the *setup-server.sh* script (Make sure the *.run* scripts are executable (*chmod u+x *.run*)). 
+   * you can retrieve the script from github by cloning this repository
+   ```shell
+   git clone https://github.com/fdasilva59/Datascience-Sandbox-Installation
+   ```
+   *  *setup-server.sh* is the main installation script. (Note : You will be prompted to create a user login to work with the sandbox)
    *  the *install* directory contains aditional scripts and configuration files to be restored/installed
-   *  Optional / Not available in this github repository : you can create a *install/perso* sub-directory wher you can store your own archive of *.ssh/* directory for your 'default' user login if you want to later automate the restoration of your ssh keys for that user. If no */root/install/perso/ssh.tar* archive exists, the script will generate new ssh keys for the new user login being created by the script, otherwise it will restore its keys from that tar archive). 
+   *  Optional / Not available in this github repository : you can create a *install/perso* sub-directory wher you can store your own archive of *.ssh/* directory for your 'default' user login if you want to later automate the restoration of your ssh keys for that user. If no *install/perso/ssh.tar* archive exists, the script will generate new ssh keys for the new user login being created by the script, otherwise it will restore its keys from that tar archive). 
        
 
-   *  Optional / Not available in this github repository : if your server has a *Nvidia graphic card (the script is written for the GTX1080)*, you can create a */root/install/nvidia* directory to downaload/store the required Nvidia installers  described abobe so that the installation script can find them.
+   *  Optional / Not available in this github repository : if your server has a *Nvidia graphic card (the script is written for the GTX1080)*, you can create a *install/nvidia* sub-directory to downaload/store the required Nvidia installers  described abobe so that the installation script can find them.
 
 Note : The installation script will install x2go server and Firefox. You can use x2goclient from your remote connection to launch Firefox (specific app */usr/bin/firefox* , you do not have to launch a full X windows desktop) to make it easier to download the Nvidia softwares after login to the Nvidia website, accept the conditions of utilisations and programs registration. This is also usefull to access the Hadoop/Yarn/Spark admin pages without opening them on the firewall. All the more, if you want to execute R Studio on the server you will need to use it through x2go client too. See http://wiki.x2go.org/doku.php/download:start in order to  download/install the x2go client
 
