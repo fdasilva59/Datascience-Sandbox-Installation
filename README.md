@@ -37,7 +37,7 @@ From a fresh installation of Ubuntu,
    ```
    *  *setup-server.sh* is the main installation script. (Note : A user account will be created. By default it is named hduser (in group: haddoop) The user login ID and group are defined in a variable at the begining of the script if you want to change it. You will be prompted by the install script to define the password of this user login)
    *  the *install* directory contains aditional scripts and configuration files to be restored/installed
-   *  Optional / Not available in this github repository : you can create a *install/perso* sub-directory wher you can store your own archive of *.ssh/* directory for your 'default' user login if you want to later automate the restoration of your ssh keys for that user. If no *install/perso/ssh.tar* archive exists, the script will generate new ssh keys for the new user login being created by the script, otherwise it will restore its keys from that tar archive). 
+   *  Optional / Not available in this github repository : you can create a *install/perso* sub-directory where you can store your own archive of *.ssh/* directory for your 'default' user login if you want to later automate the restoration of your ssh keys for that user. If no *install/perso/ssh.tar* archive exists, the script will generate new ssh keys for the new user login being created by the script, otherwise it will restore its keys from that tar archive). 
        
 
    *  Optional / Not available in this github repository : if your server has a *Nvidia graphic card (the script is written for the GTX1080)*, you can create a *install/nvidia* sub-directory to downaload/store the required Nvidia installers  described abobe so that the installation script can find them.
@@ -54,7 +54,7 @@ You can use the following installation parameters :
 
 ```shell
     --notensorflow    to skip TensorFlow installation
-    --nocudagpu       to disable NVidia driver and cuda installation 
+    --nocudagpu       to disable Nvidia driver and cuda installation 
     --notorch         to skip Torch installation 
     --nohadoop        to skip Hadoop/Yarn/Spark installation
     --nor             to skip R and Rstudio installation
@@ -220,8 +220,8 @@ rm ./patched
 
 
 # Build and Install Tensorflow
-bazel build --logging 0 -c opt --config=cuda //tensorflow/tools/pip_package:build_pip_package"
-bazel-bin/tensorflow/tools/pip_package/build_pip_package /tmp/tensorflow_pkg"
+bazel build --logging 0 -c opt --config=cuda //tensorflow/tools/pip_package:build_pip_package
+bazel-bin/tensorflow/tools/pip_package/build_pip_package /tmp/tensorflow_pkg
 sudo pip install --upgrade /tmp/tensorflow_pkg/tensorflow*.whl
 sudo pip install --upgrade https://storage.googleapis.com/tensorflow/linux/cpu/protobuf-3.0.0b2.post2-cp27-none-linux_x86_64.whl
 
