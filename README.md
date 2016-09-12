@@ -35,7 +35,7 @@ From a fresh installation of Ubuntu,
    ```shell
    git clone https://github.com/fdasilva59/Datascience-Sandbox-Installation
    ```
-   *  *setup-server.sh* is the main installation script. (Note : You will be prompted to create a user login to work with the sandbox)
+   *  *setup-server.sh* is the main installation script. (Note : A user account will be created. By default it is named hduser (in group: haddoop) The user login ID and group are defined in a variable at the begining of the script if you want to change it. You will be prompted by the install script to define the password of this user login)
    *  the *install* directory contains aditional scripts and configuration files to be restored/installed
    *  Optional / Not available in this github repository : you can create a *install/perso* sub-directory wher you can store your own archive of *.ssh/* directory for your 'default' user login if you want to later automate the restoration of your ssh keys for that user. If no *install/perso/ssh.tar* archive exists, the script will generate new ssh keys for the new user login being created by the script, otherwise it will restore its keys from that tar archive). 
        
