@@ -48,7 +48,7 @@ Note : The installation script will install x2go server and Firefox. You can use
 ## Usage : setup a Datascience sandbox
 
 ```shell
-/root/setup-server.sh [options]
+root@BigServer:~#/root/Datascience-Sandbox-Installation/setup-server.sh [options]
 ```
 You can use the following installation parameters : 
 
@@ -67,7 +67,7 @@ By default, without any options, the setup script will install Hadoop/Spark, Nvi
 
 For example, if you only want to only setup the server with Tensorflow with GPU support : 
 ```shell
-/root/setup-server.sh --notorch --nohadoop --nor
+root@BigServer:~#/root/Datascience-Sandbox-Installation/setup-server.sh --notorch --nohadoop --nor
 ```
 
 When new version of the softwares will be available, you should be able to use them by updating a few variables at the begining of the *setup-server.sh* script
@@ -155,7 +155,7 @@ apt-get -y  install linux-headers-$(uname -r)
 ./cuda_8.0.27.1_linux.run --accept-eula --installdir=/usr/local/cuda --silent
 
 # Install cuDNN 
-tar -xf $ressources/nvidia/cudnn-8.0-linux-x64-v5.1.tgz -C /usr/local
+tar -xf cudnn-8.0-linux-x64-v5.1.tgz -C /usr/local
 
 # Install Python tools
 apt-get -y  install python-numpy python-scipy python-matplotlib ipython ipython-notebook python-pandas python-sympy python-nose expect expect-dev
@@ -212,8 +212,8 @@ cd tensorflow
 
 ##########################################################################################
 
-# Need to include link to CUDA directory in CROSSTOOL file
-FILE_TO_PATCH="third_party/gpus/crosstool/CROSSTOOL"
+# Need to include link to CUDA directory in CROSSTOOL file (Don't forget to replace [user] by the user's home directory)
+FILE_TO_PATCH="/home/[user]/tensorflow/third_party/gpus/crosstool/CROSSTOOL"
 awk '/cxx_builtin_include_directory: \"\/usr\/include/ { print ; print "  cxx_builtin_include_directory: \"\/usr\/local\/cuda-8.0\/include\" " ;next }1' $FILE_TO_PATCH 2>/dev/null 1>./patched
 cp ./patched $FILE_TO_PATCH
 rm ./patched
