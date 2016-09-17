@@ -5,11 +5,12 @@ clear
 echo "*******************************************************************"
 echo "*                 DataScience Sandbox Installation                *"
 echo "*                                                                 *"
-echo "* v1.0 - Sept 2016                                                *"
+echo "* v1.1 - Sept 2016                                                *"
 echo "* https://github.com/fdasilva59/Datascience-Sandbox-Installation  *"
 echo "*******************************************************************"
 echo
 
+# Am I root ?
 if [[ $EUID -ne 0 ]]
 then    
     echo "This script must be run as root" 1>&2
@@ -18,10 +19,10 @@ fi
 
 
 ##########################################################################
-#################### Location of configuration files #####################
+####################      SETUP CONFIGURATION        #####################
 ##########################################################################
 
-# Location of configurations files to import
+# Location of configurations files to import (By default it is expected you clone the installation git repository in the /root directory)
 ressources="/root/Datascience-Sandbox-Installation/install"
 
 # Define user login and group to create  
@@ -50,78 +51,115 @@ CUDNN_INSTALL="cudnn-8.0-linux-x64-v5.1.tgz"
 # TensorFlow version (tag)
 TF_TAG="v0.10.0rc0"
 
-
 # RStudio
 RSTUDIO_FILE="rstudio-0.99.903-amd64-debian.tar.gz"
 RSTUDIO_URL="https://download1.rstudio.org/rstudio-0.99.903-amd64-debian.tar.gz"
 RSTUDIO_DIR="rstudio-0.99.903"
+RSTUDIO_SERVER_FILE="rstudio-server-0.99.903-amd64.deb"
+RSTUDIO_SERVER_URL="https://download2.rstudio.org/rstudio-server-0.99.903-amd64.deb"
 
 
 # default script parameters
-TF=true
-TORCH=true
-CUDA=true
-HADOOP=true
-R=true
+TF=false
+CUDA=false
+TORCH=false
+HADOOP=false
+LETS_ENCRYPT=false
+R=false
+R_STD_DESKTOP=false
+R_STD_SERVER=false
 CONDA=false
 
-#### HACK FOR DEBUG
-# BEGIN DEBUG (Put just before begining of a portion of codecto skip)
-#if false; then
-# END DEBUG (Put just after a portion of code to skip)
-# fi
 
 
-# Check script parameters
+## USAGE --help description
+HELP=$"This script allows to quickly configure a server (with Ubuntu 14.04LTS already preinstalled on it)
+to experiment with DataScience softwares. The full installation will install the latest release of 
+TensorFlow (with CUDA GPU support), Torch, R and R Studio, and finally a Hadoop/Yarn/Spark 'mono cluster'. 
+(It will also install required dependencies and tools) 
+
+R Studio Desktop (or  tools like Firefox) are intended to be used through a x2go client from a remote computer
+                            
+You can use the following installation parameters : 
+     
+    --cuda            to install Nvidia GTX1080 drivers, CUDA 8 and cuDNN 
+                      (Nvidia GPU option will be enabled when installing Tensorflow and/or Torch)
+
+    --tensorflow      to install TensorFlow 
+   
+    --torch           to install Torch 
+
+    --hadoop          to install Hadoop/Yarn/Spark (Mono cluster / Sandbox)
+
+    --letsencrypt     to install Let's Encrypt (and manage free SSL certificates for R Studio Server and Hadoop)
+                      (You need to provide a valid domain name for your server)
+
+    --rserver         to install R and R Studio Server (To be used through a Browser)
+
+    --rdesktop        to install R and R Studio Desktop (To be used through a x2GoClient connection (via SSH)
+
+    --conda           to install miniconda 
+
+    --help            to display this help menu
+
+
+Suggestion of configuration  : 
+
+ * Deep Learning :  Tensorflow and Torch with Nvidia Cuda support, execute :
+
+      ./setup-server.sh --cuda --tensorflow --torch
+
+
+ * Big Data : R Studio Server, Hadoop/Spark (mono cluster/sandbox) :
+
+      ./setup-server.sh  --hadoop --letsencrypt --rserver
+
+
+ * Full Data Science Sandbox : 
+
+      ./setup-server.sh --cuda --tensorflow --torch --hadoop --letsencrypt --rserver
+  
+
+"
+ 
+
+
+# Check script parameters : if no parameters, display help
+if  [ $# -eq 0 ]
+then
+     echo "$HELP" 
+     exit
+fi   
+
+# Scripts arguments to pass the software list to install  
 while [ $# -gt 0 ]
 do
    case "$1" in
-      --notensorflow) echo "Skip TensorFlow installation" 
-                      TF=false
+      --tensorflow) echo "Install TensorFlow" 
+                      TF=true
                       ;;
-      --nocudagpu)    echo "CUDA GPU support disabled in TensorFlow"  
-                      CUDA=false
+      --cuda)         echo "CUDA GPU support ensabled for TensorFlow (and/or Torch)"  
+                      CUDA=true
                       ;;
-      --notorch)      echo "Skip Torch installation"
-                      TORCH=false
+      --torch)        echo "Install Torch"
+                      TORCH=true
                       ;;
-      --nohadoop)     echo "Skip Hadoop/Spark installation" 
-                      HADOOP=false
+      --hadoop)       echo "Install Hadoop/Spark" 
+                      HADOOP=true
                       ;;
-      --nor)          echo "Skip R and RStudio installation"
-                      R=false
+      --letsencrypt)  echo "Install and configure SSL on the server with Let's Encrypt"
+                      LETS_ENCRYPT=true
+                      ;;
+      --rserver)      echo "Install R studio Server (It is strongly recommended to install/enable free Let's encrypt SSL certificates"
+                      R_STD_SERVER=true
+                      ;;
+      --rdesktop)     echo "Install RStudio Desktop"
+                      R_STD_DESKTOP=true  
                       ;;
       --conda)        echo "Install miniconda"
                       CONDA=true
                       ;;
-      --help)         echo "
-
-This script allows to quickly confifure a server ipreloaded with a fresh Ubuntu 14.04LTS
-to experiment with DataScience softwares. By default, the full installation will install 
-the latest release of TensorFlow (with CUDA GPU support), Torch, R and RSTudio, and finally 
-a Hadoop/Yarn/Spark 'mono cluster'. (It will also install required dependencies and tools) 
-
-RStudio is intended to be used through a x2go client from a remote computer
-                            
-You can use the following installation parameters : 
-     
-    --notensorflow    to skip TensorFlow installation
-  
-    --nocudagpu       to disable CUDA GPU support in TensorFlow 
-                      (note : you will also have to disable cuda when prompted by the configure
-                       script use to build TensorFlow)
-
-    --notorch         to skip Torch installation 
-
-    --nohadoop        to skip Hadoop/Yarn/Spark installation
-
-    --nor             to skip R and Rstudio installation
-
-    --conda           to install miniconda with numpy, scipy, sci-kit learn
-
-    --help            to display this help menu  
-
-"
+      --help)         echo "$HELP"
                       exit
                       ;;
     esac
@@ -135,6 +173,32 @@ case $yn in
    [Yy]* ) echo "Starting installation";;
        * ) echo "Aborting Installation." ; exit ;;
 esac
+
+if ((  ($HADOOP) || ($R_STD_SERVER) ) && !($LETS_ENCRYPT) ) 
+then
+     echo
+     echo "IMPORTANT : "
+     echo "It is highly recommended to enable SLL / install Let's Encrypt if you plan to use R Studio Server and/or Hadoop"
+     echo " >>>> Let's Encrypt certificates are free, but you will need to provide a Domain Name (you already own) for your 
+                 server in order to generate SSL certificates for the (sub)domains tomanage on this server"
+     echo " >>>> If you have a tarball backup of your Let's encrypt certicates, make sure it is available in $ressources/perso/letsencrypt-bck.tar.gz"
+     echo
+     read -p "Enable let's Encrypt SSL ? [Y/n] " yn
+     case $yn in
+	   [nN]* ) echo "Continue installation WITHOUT SSL support"           
+           ;;
+           * ) echo "Good choice ! Continue installation WITH SSL support" ;;
+     esac
+fi
+
+
+
+
+#### HACK FOR DEBUG
+# BEGIN DEBUG (Put just before begining of a portion of codecto skip)
+if false; then  # TODO
+# END DEBUG (Put just after a portion of code to skip)
+# fi
 
 
 echo
@@ -154,7 +218,8 @@ echo "*******************************************"
 echo "*****   Step 1 : configure firewall   *****"
 echo "*******************************************"
 echo
-ufw enable
+# enable firewall and allow only SSH connection
+yes | ufw enable
 ufw allow ssh
 ufw reload
 ufw status numbered
@@ -168,7 +233,7 @@ echo
 apt-get -y -q=2 install software-properties-common
 add-apt-repository -y universe
 apt-add-repository -y multiverse
-add-apt-repository -y ppa:x2go/stable
+add-apt-repository -y ppa:x2go/stable 
 add-apt-repository -y ppa:webupd8team/java
 apt-get -q=2 update
 apt-get -y -q=2 upgrade
@@ -178,18 +243,20 @@ echo "**************************************************************************
 echo "***** Step 3 : create user $user_login and grant superuser privileges       "
 echo "****************************************************************************"
 echo
-set +e
+# Check if user group already exist, in case of error create it
+set +e 
 egrep -i "$user_group" /etc/group 2>&1 > /dev/null 
 if [ $? -eq 0 ] 
 then 
-     echo "group $user_group already exist : no change" 
+     echo "group $user_group already exists : no change" 
 else 
      addgroup $user_group
 fi
+# Check if user login already exist, in case of error create it
 egrep -i "$user_login" /etc/passwd 2>&1 > /dev/null
 if [ $? -eq 0 ]  
 then 
-     echo "user $user_login already exist : no change" 
+     echo "user $user_login already exists : no change" 
 else      
      adduser --quiet --ingroup $user_group $user_login
      usermod -a -G sudo $user_login
@@ -206,7 +273,7 @@ then
      echo "ssh directory already exist for $user_login : no change"
 elif [ -f $ressources/perso/ssh.tar ]
 then 
-     echo "Found local archive of ssh credentials to restaure"
+     echo "Found local archive of ssh credentials to restore"
      mkdir /home/$user_login/.ssh
      cp $ressources/perso/ssh.tar /home/$user_login/.ssh
      cd /home/$user_login/.ssh
@@ -221,6 +288,12 @@ else
      su - $user_login -c "cat ~/.ssh/id_dsa.pub >> ~/.ssh/authorized_keys2"
      su - $user_login -c "chmod 600 ~/.ssh/authorized_keys2"
 fi
+
+# Verify local ssh connection silently
+su - $user_login -c "ssh -oStrictHostKeyChecking=no 127.0.0.1 uname -a" > /dev/null
+su - $user_login -c "ssh -oStrictHostKeyChecking=no localhost uname -a" > /dev/null
+
+
 
 echo
 echo "*******************************************"
@@ -237,7 +310,6 @@ echo "*****     Step 6 : install Java8      *****"
 echo "*******************************************"
 echo
 apt-get -y -q=2 install oracle-java8-installer
-
 
 
 if ($HADOOP) then
@@ -264,6 +336,11 @@ if ($HADOOP) then
 	     ln -s /usr/local/$VERSION_Hadoop /usr/local/hadoop
 	     chown -R $user_login:$user_group /usr/local/hadoop
 	     chown -R $user_login:$user_group /usr/local/$VERSION_Hadoop
+	     if [ ! -d /usr/local/hadoop/logs ]
+	     then
+		  mkdir /usr/local/hadoop/logs	
+                  chown $user_login:$user_group /usr/local/hadoop/logs
+             fi
 	     rm $ARCHIVE_Hadoop
 	fi
 
@@ -390,38 +467,210 @@ if ($HADOOP) then
 fi
 
 
-if ($R) then
+if ($R_STD_DESKTOP) then
 	echo
-	echo "***********************************************"
-	echo "*****  Step 10 : install R  and R Studio  *****"
-	echo "***********************************************"
+	echo "*******************************************************"
+	echo "*****  Step 10 : install R  and R Studio DESKTOP  *****"
+	echo "*******************************************************"
 	echo
 	if [ -d /usr/local/$RSTUDIO_DIR ]
 	then
-	     echo "RStudio already installed : no change."
+	    echo "R Studio Desktop already installed : no change."
 	else
-	     # libgstreamer is used by rstudio
-             apt-get -yq install r-base libgstreamer0.10-0 libgstreamer-plugins-base0.10-dev 
-	     wget $RSTUDIO_URL
-	     tar xf $RSTUDIO_FILE
-             mv $RSTUDIO_DIR /usr/local/$RSTUDIO_DIR
-	     ln -s /usr/local/$RSTUDIO_DIR /usr/local/rstudio
-	     chown -R $user_login:$user_group /usr/local/rstudio
-	     rm $RSTUDIO_FILE
+	    # libgstreamer is used by rstudio
+            apt-get -y -q=2 install r-base libgstreamer0.10-0 libgstreamer-plugins-base0.10-dev 
+	    wget $RSTUDIO_URL
+	    tar xf $RSTUDIO_FILE
+            mv $RSTUDIO_DIR /usr/local/$RSTUDIO_DIR
+	    ln -s /usr/local/$RSTUDIO_DIR /usr/local/rstudio
+	    chown -R $user_login:$user_group /usr/local/rstudio
+	    rm $RSTUDIO_FILE
+	 fi
+else
+        echo
+        echo "*************************************************************"
+        echo "***** SKIP :  Step 10 : install R and R Studio Desktop *****" 
+ 	echo "*************************************************************"
+        echo
+fi
+
+if ($R_STD_SERVER) then
+        echo
+        echo "*******************************************************"
+        echo "*****  Step 11 : install R  and R Studio SERVER   *****"
+        echo "*******************************************************"
+        echo
+        if [ -d /usr/lib/rstudio-server ]
+        then
+             echo "R Studio Server already installed : no change."
+        else
+                  apt-get -y -q=2 install r-base gdebi-core
+                  wget $RSTUDIO_SERVER_URL
+                  dpkg -i $RSTUDIO_SERVER_FILE
+                  rm $RSTUDIO_SERVER_FILE
+        fi
+else
+        echo
+        echo "************************************************************"
+        echo "***** SKIP :  Step 11 : install R  and R Studio SERVER *****"
+        echo "************************************************************"
+        echo
+fi
+
+# TODO
+fi
+
+if ($LETS_ENCRYPT) 
+then
+        echo
+        echo "************************************************************"
+        echo "***** Step 12 : Install Let's Encrypt SSL              *****"
+        echo "************************************************************"
+        echo
+
+	# If some Let's Encrypt certificates appears to may exist we avoid to change/do anything 
+	if [ -d /etc/letsencrypt/FAB ] #TODO
+	then
+		echo "Let's encrypt certificates may already exists in /etc/letsencrypt/ : no change"
+	else
+                echo "Install Let's Encrypt"
+        	# Download Let's Encrypt in no installer found from a previous execution of this script
+                if [ -d /root/certbot-auto ] 
+		then
+			echo "Found previous installation of Let's Encrypt in /root/certbot-auto"
+		else
+			echo "Let's Encrypt will be installed in /root/certbot-auto"
+			mkdir /root/certbot-auto
+	                cd /root/certbot-auto
+	                wget https://dl.eff.org/certbot-auto
+	                chmod a+x certbot-auto
+		fi	
+
+		# If a personal backup of certifiactes is found, we skip certificates creation and we restore them	
+                if [ -f $ressources/perso/letsencrypt-bck.tar.gz ]
+		then
+			echo "Found local backup version of Let's Encrypt certificates: restoring them"
+			tar xf $ressources/perso/letsencrypt-bck.tar.gz -C /
+		else
+
+			# Open Firewall on port 443 to let pass Let's Encrypt installation challenges
+                        ufw allow 443
+                        ufw reload
+                        ufw status
+
+			# Create certificates (you need to own/provide a valid domain name)
+			echo "Create Let's encrypt certificates for your domain name" 
+			echo 
+	                # Retrieve email address and domain name to be use for Let's encrypt registration	
+			check=true
+			while ($check)
+			do
+			   read -p "Enter the main domain name you own for this server (i.e. nvidia.com ) : " dn
+			   if [ -z $dn ]
+			   then
+				echo "domain name cannot be empty"
+				continue
+			   fi
+
+			   read -p "Email address for registration and recovery contact  : " email_address
+			   if [ -z $email_address ]
+			   then
+				echo "email address cannot be empty"
+				continue
+			   fi
+
+			   echo
+			   echo "Are these information correct ?"
+			   echo
+			   echo "    Domain name : $dn"
+			   echo "    Email address for registration and recovery contact : $email_address "
+			   echo
+			   read -p  "Are these information correct ? [y/n] " yn
+                           echo
+			   case $yn in
+			   [Yy]* ) echo "Starting generating SSL certificates with Let's Encrypt" ;
+				   check=false ;
+				   ;;
+			       * ) ;;
+			   esac
+
+			done
+			echo
+	
+# TODO
+if (false)
+then
+
+			echo "Trying to generate a Let's Encrypt SSL certificate for domain : $dn"
+			/root/certbot-auto/certbot-auto certonly -d $dn --standalone  --noninteractive --agree-tos --email $email_address
+
+			if ($R_STD_SERVER) then
+				echo "Trying to generate a Let's Encrypt SSL certificate for rstudio sub-domain : rstudio.$dn"
+				/root/certbot-auto/certbot-auto certonly -d rstudio.$dn --standalone  --noninteractive --agree-tos --email $email_address
+			fi
+			if ($HADOOP) then
+				echo "Trying to generate a Let's Encrypt SSL certificate for sub-domains : hadoop.$dn cluster.$dn jobs.$dn" 
+				/root/certbot-auto/certbot-auto certonly -d hdfs.$dn --standalone  --noninteractive --agree-tos --email $email_address
+				/root/certbot-auto/certbot-auto certonly -d cluster.$dn --standalone  --noninteractive --agree-tos --email $email_address
+				/root/certbot-auto/certbot-auto certonly -d jobs.$dn --standalone  --noninteractive --agree-tos --email $email_address
+			fi
+fi # TODO
+                       # Generate Nginx server conf for given domains
+                        $ressources/gener_nginx_conf.sh $dn
+
+                        # Backup the certificates created
+                        if [ -d $ressources/perso ]
+                        then
+                                tar -cf $ressources/perso/letsencrypt-bck.tar /etc/letsencrypt /etc/nginx/sites-enabled/nginx_conf
+                                gzip $ressources/perso/letsencrypt-bck.tar
+				echo
+				echo "A zip Tarball backup of the created Let's Encrypt Certificates has been stored in $ressources/perso/letsencrypt-bck.tar : DON'T FORGET TO SAVE IT IN A SECURE PLACE (other server)" 
+                        fi
+
+
+		fi
+	
+			# Crontab to renew the Let's encrypt certificates
+ 			echo "Installing crontab to renew Let's Encrypt certificates"
+			cat <(crontab -l) <(echo "0 12 10 JAN,MAR,MAY,JUL,SEP,NOV * /root/certbot-auto/certbot-auto renew") | crontab -
+
+
+		        # Install nginx to define proxy rules (translation of subdomains/port 443 to several localhost ports in higher range)
+                        echo "Installing Nginx to manage the SSL accesses" 
+                        apt-get -y -q=2 install nginx
+	                
+			# Test and Enable teh nginx configuration
+        		echo "Testing and Reloading Nginx congiguration (Give SSL access through proxy to R Studio Server and Hadoop/Spark admin pages)"
+                        nginx -t
+	                service nginx restart
+ 			
+			# Close on the firewall everybody's access to port 443 
+                        ufw delete allow 443
+                        ufw reload
+                        ufw status
+
+ 			# Find the IP address of the remote SSH connecction to open the firewall just to us
+			# (The first IP address that has succeeded to connect to this server via ssh as root )
+			ip=$(sudo grep -e "^.*Accepted.*$(whoami).* ssh2$" /var/log/auth.log  | head -1 | cut -d" " -f11)
+                        echo "Opening the firewall on port 80 and 443 for your remote IP address $ip"
+			ufw allow proto tcp from $ip to any port 80
+			ufw allow proto tcp from $ip to any port 443
+	                ufw reload
+                        ufw status
 	fi
 else
         echo
-        echo "******************************************************"
-        echo "***** SKIP :  Step 10 : install R  and R Studio  *****"
-        echo "******************************************************"
+        echo "************************************************************"
+        echo "***** SKIP :  Step 12 : Install Let's Encrypt SSL      *****"
+        echo "************************************************************"
         echo
-
 fi
+
 
 
 echo
 echo "*******************************************"
-echo "*****  Step 11 : install Dev tools    *****"
+echo "*****  Step 13 : install Dev tools    *****"
 echo "*******************************************"
 echo
 apt-get -y -q=2 install git zip unzip autoconf automake cmake libtool curl zlib1g-dev  g++ vim aptitude arp-scan swig python-pip python-dev firefox
@@ -430,7 +679,7 @@ apt-get -y -q=2 install git zip unzip autoconf automake cmake libtool curl zlib1
 if ($CONDA) then
 	echo
 	echo "******************************************************"
-	echo "*****  Step 12 : install anaconda, numpy, scikit *****"
+	echo "*****  Step 14 : install anaconda, numpy, scikit *****"
 	echo "******************************************************"
 	echo
 	if [ -d /home/$user_login/miniconda ]
@@ -440,22 +689,22 @@ if ($CONDA) then
 	     su - $user_login -c "cd /home/$user_login ; wget http://repo.continuum.io/miniconda/Miniconda3-3.7.0-Linux-x86_64.sh -O ./miniconda.sh"
 	     su - $user_login -c "cd /home/$user_login ; bash ./miniconda.sh -b -p /home/$user_login/miniconda"
 	     su - $user_login -c "cd /home/$user_login ; miniconda/bin/conda install numpy scikit-learn scipy"
-	     su - $user_login -c "cd /home/$user_login ; miniconda/bin/conda create -n deeppy numpy scikit-learn scipy"
+	     # TODO su - $user_login -c "cd /home/$user_login ; miniconda/bin/conda create -n deeppy numpy scikit-learn scipy"
 	     rm /home/$user_login/miniconda.sh
 	fi
 else
         echo
         echo "********************************************************"
-        echo "*** SKIP Step 12 : install anaconda, numpy, scikit *****"
+        echo "*** SKIP Step 14 : install anaconda, numpy, scikit *****"
         echo "********************************************************"
         echo
 fi
 
 
-if ($CUDA ) then
+if ($CUDA) then
 	echo
 	echo "**************************************************************"
-	echo "*****  Step 13 : Install NVIDIA Pascal GTX1080 drivers   *****"
+	echo "*****  Step 15 : Install NVIDIA Pascal GTX1080 drivers   *****"
 	echo "**************************************************************"
         echo
 
@@ -501,7 +750,7 @@ if ($CUDA ) then
 else
         echo
         echo "*****************************************************************"
-        echo "*** SKIP Step 13 : Install NVIDIA Pascal GTX1080 drivers    *****"  
+        echo "*** SKIP Step 15 : Install NVIDIA Pascal GTX1080 drivers    *****"  
         echo "*****************************************************************"
         echo
 fi
@@ -510,7 +759,7 @@ fi
 if ($CUDA ) then
         echo
         echo "**************************************************"
-        echo "*****  Step 14 : NVIDIA GPU : Install CUDA   *****"
+        echo "*****  Step 16 : NVIDIA GPU : Install CUDA   *****"
         echo "**************************************************"
         echo
 
@@ -525,7 +774,7 @@ if ($CUDA ) then
              exit
         fi
 
-        if [ -f $ressources/nvidia/$CUDA_PATCH ]    
+        if [ -f $ressources/nvidia/$CUDA_PATCH ]
         then 
              echo "Found local version of $CUDA_PATCH"
              $ressources/nvidia/$CUDA_PATCH --accept-eula --installdir=/usr/local/cuda --silent
@@ -543,7 +792,7 @@ if ($CUDA ) then
 else
         echo
         echo "******************************************************"
-        echo "***** SKIP Step 14 : NVIDIA GPU : Install CUDA   *****"
+        echo "***** SKIP Step 16 : NVIDIA GPU : Install CUDA   *****"
         echo "******************************************************"
         echo
 fi
@@ -554,7 +803,7 @@ if ($CUDA )
 then
 	echo
 	echo "**************************************************"
-	echo "*****  Step 15 : NVIDIA GPU : Install cuDNN  *****"
+	echo "*****  Step 17 : NVIDIA GPU : Install cuDNN  *****"
 	echo "**************************************************"
 	echo
 
@@ -572,7 +821,7 @@ then
 else
         echo
         echo "**************************************************"
-        echo "*** SKIP  Step 15 : Nvidia GPU : Install cuDNN ***"
+        echo "*** SKIP  Step 17 : Nvidia GPU : Install cuDNN ***"
         echo "**************************************************"
         echo
 fi
@@ -581,7 +830,7 @@ if ($TF)
 then
 	echo
 	echo "*************************************************************************************"
-	echo "*****  Step 16 : Prepare TensorFlow Installation : Install Python, Numpy, ...   *****"
+	echo "*****  Step 18 : Prepare TensorFlow Installation : Install Python, Numpy, ...   *****"
 	echo "*************************************************************************************"
         echo
         apt-get -y -q=2 install python-numpy python-scipy python-matplotlib ipython ipython-notebook python-pandas python-sympy python-nose expect expect-dev
@@ -590,7 +839,7 @@ then
 
 	echo
 	echo "***********************************************************************"
-	echo "*****  Step 17 : Prepare TensorFlow Installation : Install Bazel  *****"
+	echo "*****  Step 19 : Prepare TensorFlow Installation : Install Bazel  *****"
 	echo "***********************************************************************"
         echo
 	echo "deb [arch=amd64] http://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list 
@@ -600,24 +849,15 @@ then
 
 	echo
 	echo "*************************************************************"
-	echo "*****     Step 18 : Build and Install TensorFlow        *****"
+	echo "*****     Step 20 : Build and Install TensorFlow        *****"
 	echo "*************************************************************"
 	echo
-	echo "Note : When you will be prompted by the configure script, choose the DEFAULT values"
-	# echo "Note : When you will be prompted by the configure script, choose the DEFAULT values except for the GPU support which needs to be enabled"
 	echo
 	if [ -d /home/$user_login/tensorflow ]
 	then
 	     rm -rf /home/$user_login/tensorflow
 	fi
         su - $user_login -c "git clone --branch $TF_TAG https://github.com/tensorflow/tensorflow "
-        #if ($CUDA = true) then 
-            #echo
-            #echo " IMPORTANT :"
-            #echo "When prompted by the configure script to build TensorFlow, dont't forget to answer YES to the question about GPU support"
-	    #read -p "Press a key to continue " yn
-        #fi
-        #su - $user_login -c "cd /home/$user_login/tensorflow; ./configure" 
         
 	if !($CUDA ) 
         then
@@ -653,15 +893,15 @@ then
 else
         echo
         echo "***********************************************************************"
-        echo "*** SKIP Step 16 : Prepare TensorFlow Installation : Install python ***"
+        echo "*** SKIP Step 18 : Prepare TensorFlow Installation : Install python ***"
         echo "***********************************************************************"
         echo
         echo "***********************************************************************"
-        echo "*** SKIP Step 17 : Prepare TensorFlow Installation : Install Bazel  ***"
+        echo "*** SKIP Step 19 : Prepare TensorFlow Installation : Install Bazel  ***"
         echo "***********************************************************************"
         echo
         echo "*************************************************************"
-        echo "*** SKIP  Step 18 : Build and Install TensorFlow        *****"
+        echo "*** SKIP  Step 20 : Build and Install TensorFlow        *****"
         echo "*************************************************************"
         echo
 fi
@@ -670,7 +910,7 @@ if ($TORCH )
 then
 	echo
 	echo "*************************************************************"
-	echo "*****         Step 19 :  Build and Install Torch        *****"
+	echo "*****         Step 21 :  Build and Install Torch        *****"
 	echo "*************************************************************"
         echo
 	if [ -d /home/$user_login/torch ]
@@ -685,7 +925,7 @@ then
 else
         echo
         echo "*************************************************************"
-        echo "*****    SKIP Step 19 :  Build and Install Torch        *****"
+        echo "*****    SKIP Step 21 :  Build and Install Torch        *****"
         echo "*************************************************************"
         echo
 fi
@@ -703,4 +943,28 @@ case $yn in
    [Yy]* ) echo "Going for reboot..." ; reboot ;;
        * ) exit ;;
 esac
+
+
+# TODO scripts enable/stop firewall 80/443/...
+# MAJ README.md
+#   - menu help
+#   - usage
+#   - bloc rstudio serv/desktop
+#   - bloc let's encrypt
+#   - bloc fw
+
+# Get YOUR_DOMAIN.COM at your hosting provider (or other DNS provider), and then 
+# add domain YOUR_DOMAIN.COM to a server (IPv4 - A) with target IP_OF_YOUR_SERVER      #    
+# add domain  rstudio.deeplearning-area.xyz to a domain CNAME target YOUR_DOMAIN.COM     # Sub-domain to reach R Studio Server 
+# add domain  hdfs.deeplearning-area.xyz to a domain CNAME target YOUR_DOMAIN.COM     	 # Sub-domain to reach Hadoop HDFS Admin page
+# add domain  cluster.deeplearning-area.xyz to a domain CNAME target YOUR_DOMAIN.COM     # Sub-domain to reach Hadoop Ressource Manager 
+# add domain  jobs.deeplearning-area.xyz to a domain CNAME target YOUR_DOMAIN.COM         # Sub-domain to reach Spark Jobs Admin page (When Spark running) 
+
+# then use Let's Encrypt to get some free SSL certificates for these domains 
+
+
+
+# /usr/local/hadoop/sbin/start-dfs.sh
+# /usr/local/hadoop/sbin/start-yarn.sh
+
 
