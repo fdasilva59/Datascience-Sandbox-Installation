@@ -262,7 +262,7 @@ Then you will have to associate your domain with the IP address of your server (
   - add domain  rstudio.YOUR_DOMAIN.COM to a domain CNAME with target YOUR_DOMAIN.COM     # Sub-domain to reach R Studio Server 
   - add domain  hdfs.YOUR_DOMAIN.COM to a domain CNAME with target YOUR_DOMAIN.COM        # Sub-domain to reach Hadoop HDFS Admin page
   - add domain  cluster.YOUR_DOMAIN.COM to a domain CNAME with target YOUR_DOMAIN.COM     # Sub-domain to reach Hadoop Ressource Manager 
-# add domain  jobs.YOUR_DOMAIN.COM to a domain CNAME with target YOUR_DOMAIN.COM         # Sub-domain to reach Spark Jobs Admin page (When Spark running) 
+- add domain  jobs.YOUR_DOMAIN.COM to a domain CNAME with target YOUR_DOMAIN.COM         # Sub-domain to reach Spark Jobs Admin page (When Spark running) 
 
 (You migh thave to wait 24/48H that DNS get updated over the internet to reflect these changes) 
 
