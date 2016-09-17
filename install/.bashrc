@@ -88,8 +88,6 @@ fi
 alias ll='ls -alF'
 alias la='ls -A'
 alias l='ls -CF'
-alias hd-start="start-dfs.sh ; start-yarn.sh"
-alias hd-stop="stop-yarn.sh ; stop-dfs.sh"
 alias cdhdlog="cd /usr/local/hadoop/logs"
 alias Aconda='source activate $1'
 alias Dconda='source deactivate'
@@ -152,4 +150,55 @@ then
 fi
 
 
+
+function fw-allow {
+	# Find the IP address of the remote SSH connecction to open the firewall
+	ip=$(sudo grep -e "^.*Accepted.*$(whoami).* ssh2$" /var/log/auth.log  | tail -1 | cut -d" " -f11)
+	echo "Opening the firewall on port 80 and 443 for your remote IP address $ip"
+	sudo ufw allow proto tcp from $ip to any port 80
+	sudo ufw allow proto tcp from $ip to any port 443
+	sudo ufw reload
+	sudo ufw status
+        FIREWALL_PUPLIC_IP_ALLOWED=$ip
+        export FIREWALL_PUPLIC_IP_ALLOWED
+}
+
+function fw-delete {
+        if [ -z $FIREWALL_PUPLIC_IP_ALLOWED ] 
+        then
+		# is there a known IP address that has opened the firewall ? If so, use it to close the firewall
+                echo "Trying to close the firewall on port 80 and 443 for your remote IP address $FIREWALL_PUPLIC_IP_ALLOWED"
+		sudo ufw delete allow proto tcp from $FIREWALL_PUPLIC_IP_ALLOWED to any port 80
+        	sudo ufw delete allow proto tcp from $FIREWALL_PUPLIC_IP_ALLOWED to any port 443
+ 		set -u $FIREWALL_PUPLIC_IP_ALLOWED
+	else
+        	# Find the IP address of my remote SSH connecction to try to close the firewall    	
+		ip=$(sudo grep -e "^.*Accepted.*$(whoami).* ssh2$" /var/log/auth.log  | tail -1 | cut -d" " -f11)
+		echo "Closing the firewall on port 80 and 443 for your remote IP address $ip"
+        	sudo ufw delete allow proto tcp from $ip to any port 80
+        	sudo ufw delete allow proto tcp from $ip to any port 443
+	fi
+        sudo ufw reload
+        sudo ufw status
+}
+
+function hd-start {
+	echo "Starting Hadoop/Yarn"
+	start-dfs.sh  
+	start-yarn.sh
+        if [ -z $FIREWALL_PUPLIC_IP_ALLOWED ]
+        then
+		echo "Firewall appears to be already open on port 80 and 443 for your remote IP address $ip"
+	else
+		fw-allow
+	fi
+}
+
+function hd-stop {
+	echo "Stopping Hadoop/Yarn"
+	stop-yarn.sh 
+        stop-dfs.sh
+	# We don't automatically close the firewall as the user might still need to access other services
+	echo "Don't forget to close the firewall if needed !"
+}
 
