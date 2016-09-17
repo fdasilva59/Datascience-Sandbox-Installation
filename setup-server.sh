@@ -196,7 +196,7 @@ fi
 
 #### HACK FOR DEBUG
 # BEGIN DEBUG (Put just before begining of a portion of codecto skip)
-if false; then  # TODO
+#if false; then 
 # END DEBUG (Put just after a portion of code to skip)
 # fi
 
@@ -517,8 +517,6 @@ else
         echo
 fi
 
-# TODO
-fi
 
 if ($LETS_ENCRYPT) 
 then
@@ -529,7 +527,7 @@ then
         echo
 
 	# If some Let's Encrypt certificates appears to may exist we avoid to change/do anything 
-	if [ -d /etc/letsencrypt/FAB ] #TODO
+	if [ -d /etc/letsencrypt/ ] 
 	then
 		echo "Let's encrypt certificates may already exists in /etc/letsencrypt/ : no change"
 	else
@@ -597,10 +595,6 @@ then
 			done
 			echo
 	
-# TODO
-if (false)
-then
-
 			echo "Trying to generate a Let's Encrypt SSL certificate for domain : $dn"
 			/root/certbot-auto/certbot-auto certonly -d $dn --standalone  --noninteractive --agree-tos --email $email_address
 
@@ -614,7 +608,6 @@ then
 				/root/certbot-auto/certbot-auto certonly -d cluster.$dn --standalone  --noninteractive --agree-tos --email $email_address
 				/root/certbot-auto/certbot-auto certonly -d jobs.$dn --standalone  --noninteractive --agree-tos --email $email_address
 			fi
-fi # TODO
                        # Generate Nginx server conf for given domains
                         $ressources/gener_nginx_conf.sh $dn
 
@@ -945,26 +938,5 @@ case $yn in
 esac
 
 
-# TODO scripts enable/stop firewall 80/443/...
-# MAJ README.md
-#   - menu help
-#   - usage
-#   - bloc rstudio serv/desktop
-#   - bloc let's encrypt
-#   - bloc fw
-
-# Get YOUR_DOMAIN.COM at your hosting provider (or other DNS provider), and then 
-# add domain YOUR_DOMAIN.COM to a server (IPv4 - A) with target IP_OF_YOUR_SERVER      #    
-# add domain  rstudio.deeplearning-area.xyz to a domain CNAME target YOUR_DOMAIN.COM     # Sub-domain to reach R Studio Server 
-# add domain  hdfs.deeplearning-area.xyz to a domain CNAME target YOUR_DOMAIN.COM     	 # Sub-domain to reach Hadoop HDFS Admin page
-# add domain  cluster.deeplearning-area.xyz to a domain CNAME target YOUR_DOMAIN.COM     # Sub-domain to reach Hadoop Ressource Manager 
-# add domain  jobs.deeplearning-area.xyz to a domain CNAME target YOUR_DOMAIN.COM         # Sub-domain to reach Spark Jobs Admin page (When Spark running) 
-
-# then use Let's Encrypt to get some free SSL certificates for these domains 
-
-
-
-# /usr/local/hadoop/sbin/start-dfs.sh
-# /usr/local/hadoop/sbin/start-yarn.sh
 
 
