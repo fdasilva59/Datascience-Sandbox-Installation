@@ -52,6 +52,7 @@ CUDNN_INSTALL="cudnn-8.0-linux-x64-v5.1.tgz"
 TF_TAG="v0.10.0rc0"
 
 # RStudio
+CRAN_MIRROR="https://mirror.ibcp.fr/pub/CRAN/bin/linux/ubuntu trusty/" 
 RSTUDIO_FILE="rstudio-0.99.903-amd64-debian.tar.gz"
 RSTUDIO_URL="https://download1.rstudio.org/rstudio-0.99.903-amd64-debian.tar.gz"
 RSTUDIO_DIR="rstudio-0.99.903"
@@ -235,6 +236,11 @@ add-apt-repository -y universe
 apt-add-repository -y multiverse
 add-apt-repository -y ppa:x2go/stable 
 add-apt-repository -y ppa:webupd8team/java
+# Update to install R
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E084DAB9
+gpg -a --export E084DAB9 | sudo apt-key add -
+echo "# Add CRAN mirror" >> /etc/apt/sources.list
+echo "deb $CRAN_MIRROR" >>/etc/apt/sources.list
 apt-get -q=2 update
 apt-get -y -q=2 upgrade
 
