@@ -373,12 +373,15 @@ function fw-delete {
 
 
 ## Things to improve
-   * check Nvidia installers checksum in the installation script 
+   * check Nvidia installers checksum in the installation script
+   * check R studio server checksum in the installation script
    * replace release candidate versions of Nvidia softwares by stable versions when available
+   * check/improve firewall and secuirty management
+   * check email/domain name format in the installation script for Let's Encrypt
    * Tensorflow installation : improve CROSSTOOL patch to include path to CUDA directory 
    * Possibility to have a post install script to be used in OVH manager when setting up the server ?
    * redirect some install display output to some logs file and have the instalaltion a bit more cleaner at display  
-   * add a menu to select what sofwares to install. Improve installatio nscript arguments 
+   * add a menu to select what sofwares to install. Improve installation script arguments 
    * Make a VM or Docker image ? (at least without Nvidia software / License for public version ?)
    * ...
 
