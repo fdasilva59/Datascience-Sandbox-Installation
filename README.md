@@ -6,7 +6,7 @@ Collection of scripts and configuration files to quickly setup a Datascience **s
 
 As I am learning/experimenting with Big Data and Machine Learning, I sometimes need to quickly setup/clone/restore a sandbox server with some various Data Science softwares. This collection of scripts/configurations files is intended to facilitate/automate this task. You can use it "as this", modify it to suit your project's requirements or simply get directions from it for a manual server installation.
 
-This script has been developped/tested with the very great **Innovation Lab Projet #1521** proposed by **OVH** (see https://www.runabove.com/index.xml) which consists in a dedicated server with the following configuration : 2x Intel Xeon E5-2630v3 (16 cores each / 32 cores in total), 128GB of RAM, 240 GB of SSD, 1 Nvidia GTX 1080 
+This script has been updated/tested with the very great **Innovation Lab Projet #1521** proposed by **OVH** (see https://www.runabove.com/index.xml) which consists in a dedicated server with the following configuration : 2x Intel Xeon E5-2630v3 (16 cores each / 32 cores in total), 128GB of RAM, 240 GB of SSD, 1 Nvidia GTX 1080 
 
 ## What it does :
 
@@ -18,34 +18,40 @@ From a fresh installation of Ubuntu,
 - provide an option to install **Torch** 
 - provide an option to install **Hadoop 2.7 / Spark 2.0** as a Mono-cluster
 - install some tools like x2go server to be able to open program like Firefox or R Studio through a ssh remote connection
+- provide an option to install **R and R Studio Server** 
 - provide an option to install **R and R Studio Desktop** 
+- provide an option to install **Let's Encrypt SSL certificates for R Studio Server and Hadoop/Spark** 
 - provide an option to install miniconda 
 
 ## Requirements
 
 * Ubuntu 14.04 LTS (with original kernel 3.13.0-95)
-* If you want to setup the Nvidia graphic card, you will have to download the following softwares from Nvidia website (you might need to register a free account and enroll to some Nvidia free developpers programs ). Note, these versions are the latest available at the time of writing these scripts : 
+* If you want to setup the **Nvidia graphic card**, you will have to download the following softwares from Nvidia website (you might need to register a free account and enroll to some Nvidia free developpers programs). Note, these versions are the latest available at the time of writing these scripts : 
    * NVIDIA-Linux-x86_64-367.44.run* (see :http://www.nvidia.com/drivers )
    * cuda_8.0.27_linux.run* (see : https://developer.nvidia.com/cuda-release-candidate-download  )
    * cuda_8.0.27.1_linux.run* (see : https://developer.nvidia.com/cuda-release-candidate-download )
    * cudnn-8.0-linux-x64-v5.1.tgz (see : https://developer.nvidia.com/cudnn )
 
 * The *setup-server.sh* script and *install* directory (and its content) need to be installed in a */root/Datascience-Sandbox-Installation/* directory. You might change the location or rename the directory, but in that case you will have to update the location in the *ressources* variable defined at the begining of the *setup-server.sh* script (Make sure the *.run* scripts are executable (*chmod u+x *.run*)). 
-   * you can retrieve the script from github by cloning this repository
-   ```shell
-   git clone https://github.com/fdasilva59/Datascience-Sandbox-Installation
-   ```
+  
    *  *setup-server.sh* is the main installation script. (Note : A user account will be created. By default it is named hduser (in group: haddoop) The user login ID and group are defined in a variable at the begining of the script if you want to change it. You will be prompted by the install script to define the password of this user login)
    *  the *install* directory contains aditional scripts and configuration files to be restored/installed
    *  Optional / Not available in this github repository : you can create a *install/perso* sub-directory where you can store your own archive of *.ssh/* directory for your 'default' user login if you want to later automate the restoration of your ssh keys for that user. If no *install/perso/ssh.tar* archive exists, the script will generate new ssh keys for the new user login being created by the script, otherwise it will restore its keys from that tar archive). 
        
+   *  Optional / Not available in this github repository : if your server has a *Nvidia graphic card (the script is written for the GTX1080)* , you can create a *install/nvidia* sub-directory to downaload/store the required Nvidia installers  described abobe so that the installation script can find them.
+   
 
-   *  Optional / Not available in this github repository : if your server has a *Nvidia graphic card (the script is written for the GTX1080)*, you can create a *install/nvidia* sub-directory to downaload/store the required Nvidia installers  described abobe so that the installation script can find them.
-
-Note : The installation script will install x2go server and Firefox. You can use x2goclient from your remote connection to launch Firefox (specific app */usr/bin/firefox* , you do not have to launch a full X windows desktop) to make it easier to download the Nvidia softwares after login to the Nvidia website, accept the conditions of utilisations and programs registration. This is also usefull to access the Hadoop/Yarn/Spark admin pages without opening them on the firewall. All the more, if you want to execute R Studio on the server you will need to use it through x2go client too. See http://wiki.x2go.org/doku.php/download:start in order to  download/install the x2go client
+Note : The installation script will install x2go server and Firefox. You can use x2goclient from your remote connection to launch Firefox (specific app */usr/bin/firefox* , you do not have to launch a full X windows desktop) to make it easier to download the Nvidia softwares after login to the Nvidia website, accept the conditions of utilisations and programs registration. This is also usefull to access the Hadoop/Yarn/Spark admin pages without opening them on the firewall. All the more, if you want to execute R Studio Destktop on the server you will need to use it through x2go client too. See http://wiki.x2go.org/doku.php/download:start in order to  download/install the x2go client
 
 
 ## Usage : setup a Datascience sandbox
+
+**For the first time, it is higly encouraged to have a look at *setup-server.sh* code in order to understand what is executed and decide to use it 'as this' or adjust/modify the code before using it.** The code is divided in blocks of code that reflects the different options available (In fact this script is some kind of concatenation of different products installation I performed over the time. You can think of it as a swiss-knive-tool to setup a new sandbox server) 
+
+You can retrieve the script from github by cloning this repository (you might have to install git first)
+ ```shell
+ git clone https://github.com/fdasilva59/Datascience-Sandbox-Installation
+ ```
 
 ```shell
 root@BigServer:~#/root/Datascience-Sandbox-Installation/setup-server.sh [options]
@@ -53,22 +59,36 @@ root@BigServer:~#/root/Datascience-Sandbox-Installation/setup-server.sh [options
 You can use the following installation parameters : 
 
 ```shell
-    --notensorflow    to skip TensorFlow installation
-    --nocudagpu       to disable Nvidia driver and cuda installation 
-    --notorch         to skip Torch installation 
-    --nohadoop        to skip Hadoop/Yarn/Spark installation
-    --nor             to skip R and Rstudio installation
+    --cuda            to install Nvidia GTX1080 drivers, CUDA 8 and cuDNN 
+                      (Nvidia GPU option will be enabled when installing Tensorflow and/or Torch)
+    --tensorflow      to install TensorFlow 
+    --torch           to install Torch 
+    --hadoop          to install Hadoop/Yarn/Spark (Mono cluster / Sandbox)
+    --letsencrypt     to install Let's Encrypt (and manage free SSL certificates for R Studio Server and Hadoop)
+                      (You need to provide a valid domain name for your server)
+    --rserver         to install R and R Studio Server (To be used through a Browser)
+    --rdesktop        to install R and R Studio Desktop (To be used through a x2GoClient connection (via SSH)
     --conda           to install miniconda 
-    --help            to display this help menu  
+    --help            to display this help menu 
 ```
+
+Suggestion of configuration  : 
+
+ * **Deep Learning :  Tensorflow and Torch with Nvidia Cuda support**, execute (don't forget to retrieve nvidia installers before) :
+
+      `./setup-server.sh --cuda --tensorflow --torch`
+
+ * Big Data : R Studio Server (with SSL access), Hadoop/Spark (mono cluster/sandbox) :
+
+      `./setup-server.sh  --hadoop --letsencrypt --rserver`
+
+ * Full Data Science Sandbox : 
+
+      `./setup-server.sh --cuda --tensorflow --torch --hadoop --letsencrypt --rserver`
+
+
 The script requires to be executed by the root user. 
 
-By default, without any options, the setup script will install Hadoop/Spark, Nvidia GTX1080 support, Tensorflow (with GPU support), Torch (which benefits form GPU too) and R softwares
-
-For example, if you only want to only setup the server with Tensorflow with GPU support : 
-```shell
-root@BigServer:~#/root/Datascience-Sandbox-Installation/setup-server.sh --notorch --nohadoop --nor
-```
 
 When new version of the softwares will be available, you should be able to use them by updating a few variables at the begining of the *setup-server.sh* script
 
@@ -84,6 +104,9 @@ This script has been developped for Ubuntu 14.04 It has not been tested on other
 
 The installation script is not intended to be executed several times (like to update a previous setup). Though it should work in most cases properly, not every cases have been tested. So if you want to use it after an initial setup, use it with caution at your own risks.
 
+** Let's Encrypt ** : It is highly recommended to protect the access to the admin pages of Hadoop/Spark or to R Studio Server via SSL access. In order to do so *you have to own/buy/provide a valid domain name* for your server (See Let's Encrypt section below)
+
+** BACKUP ** As usual, don't forget to backup data on you server, following the installation. In particular, if you you have generated Let's Encrypt SSL certificates, make a backup on another location ! 
 
 ## Note about Nvidia GTX1080 setup and Tensorflow compilation with CUDA option
 
@@ -229,34 +252,130 @@ sudo pip install --upgrade https://storage.googleapis.com/tensorflow/linux/cpu/p
 
 ```
 
+## Improve security with Let's Encrypt SSL certificates
+
+As pre-requisite, you  have to own/get a valid domain name  at your hosting provider or other DNS provider (let's call it 'YOUR_DOMAIN.COM'). Depending on the domain extension you will choose, it can cost more or less, starting at a couple of Euros/Dollars)
+
+Then you will have to associate your domain with the IP address of your server (With OVH hosting, it is quite easy and straight forward thanks to the OVH Manager). Whatever your solution, you have to 
+
+  - add domain YOUR_DOMAIN.COM to a server (IPv4 - A) with target IP_OF_YOUR_SERVER         
+  - add domain  rstudio.YOUR_DOMAIN.COM to a domain CNAME with target YOUR_DOMAIN.COM     # Sub-domain to reach R Studio Server 
+  - add domain  hdfs.YOUR_DOMAIN.COM to a domain CNAME with target YOUR_DOMAIN.COM        # Sub-domain to reach Hadoop HDFS Admin page
+  - add domain  cluster.YOUR_DOMAIN.COM to a domain CNAME with target YOUR_DOMAIN.COM     # Sub-domain to reach Hadoop Ressource Manager 
+# add domain  jobs.YOUR_DOMAIN.COM to a domain CNAME with target YOUR_DOMAIN.COM         # Sub-domain to reach Spark Jobs Admin page (When Spark running) 
+
+(You migh thave to wait 24/48H that DNS get updated over the internet to reflect these changes) 
+
+After this, you can install and use Let's Encrypt to get some free SSL certificates for these domains. 
+
+When used with the option *--letsencrypt*, the *setup-server.sh* script will install certbot (see https://certbot.eff.org ) and generate Let's Encrypt SSL standalone certificates for you for the following (sub)domains :
+  - YOUR_DOMAIN.COM
+  - rstudio.YOUR_DOMAIN.COM (if you are installing R Studio server with the option *--rserver*)
+  - hdfs.YOUR_DOMAIN.COM (if you are installing Hadoop/Spark with the option *--hadoop*)
+  - cluster.YOUR_DOMAIN.COM (if you are installing Hadoop/Spark with the option *--hadoop*)
+  - jobs.YOUR_DOMAIN.COM (if you are installing Hadoop/Spark with the option *--hadoop*)
+
+**Important** In order to register these certificates, the *setup-server.sh* script will prompt you for your domain name and contact email address : make sure the information provided are valid otherwise cerbot and the installation script will fail. 
+(Note : the script only test for empty input. There is not (yet) a regex to verify for valid domain name or valid email address format)
+
+Let's Encrypt is installed in the root home directory (/root/certbot-auto/). *cerbaut-auto* will install its stuff in /root/.local/share/letsencrypt/ .Let's Encrypt certificates are located in /etc/letsencrypt/
+
+Finally, the installation script will add a crontab (user root) to renew the Let's encrypt certificates. You might want to adjust this crontab configuration : 
+
+``` shell
+~/Datascience-Sandbox-Installation# crontab -l
+0 12 10 JAN,MAR,MAY,JUL,SEP,NOV * /root/certbot-auto/certbot-auto renew
+```
 
 ## Usage : how to start/stop Hadoop/Spark mono cluster (if installed)
 
-If you have installed Hadoop/Spark in your Sandbox, you can start / stop  the cluster using the following scripts
+If you have installed Hadoop/Spark in your Sandbox, you can start / stop  the mono-cluster using the following 2 command/functions (defined in the .bashrc file) :
+  - *hd-start*
+  - *hd-stop*
 
-```shell
-# Start Hadoop  & Yarn
-start-dfs.sh
-start-yarn.sh
+Note :
+  - *hd-start* will call another function *fw-allow* to try to "open" the firewall  (See Firewall section for details)
+  - BUT in contrary *hd-stop* will not try to close the firewall as other programs like rstudio might still need to be accessed via port 443. You have to close "the" firewall manually 
 
-# Start Hadoop  & Yarn
-stop-yarn.sh
-stop-dfs.sh
+Quicklinks to access the Hadoop/Spark admin pages (using Firefox on the server through x2goclient)
+   * HDFS Admin : http://localhost:50070/
+   * Yarn Admin : http://localhost:8088/cluster
+   * Spark Admin (when spark is running) :http://localhost:4040/jobs/
+   
+(If you own a domain name, have installed some Let's Encrypt SSL certificates, and have opened the firewall, you will be able to access this admin pages via your browser over the internet)
+
+## Important note about the firewall
+
+By default the firewall will be enabled by the installation script via  *ufw*. Only Port 22 will be enabled
+
+The installation script will prompt you to disable ssh connection for user root :
+  - This is better for security when using a server in the cloud
+  - However, this require to have defined a valid user ID with sudo privilege in order to be able to connect to the server via SSH. The installation script will create such user (by default, the script will use user name *hduser* and group *hadoop*  as defined in variable at the begining of the *setup-server.sh* script
+  - If you wish to reverse this option, have a look at *PermitRootLogin* option in */etc/ssh/sshd_config* file
+   
+
+When generating SSL certificates with Let's Encrypt, cerbot requires port 443 to be open to validate some challenges. The installation script will open/close port 443 for this task to be performed.
+
+When installing Let's Encrypt, the installation script will install nginx to translate (proxy) the local address/ports of hadoop/spark admin pages and R studio to the subdomains described in the Let's Encrypot section.
+
+The *setup-server.sh* installation script will call the *gener_nginx_conf.sh* (in install subdirectory of this git project) to generate a very basic nginx configuration file using the domain name you have provided for Let's Encrypt. You might want to adjust this nginx connfiguration to suit your needs/requirements. The installation script save this nginx configuration in */etc/nginx/sites-enabled/nginx_conf*
+
+After installing the nginx server, the script will try to determine your public IP adress you are using to connect to the server (try to find the first IP address that has succeeded to connect to the server via ssh as root), and then it will open the firewall only for *this IP* adress on port 80 and 443. As always, verify and adjust if needed the firewall configuration
+
+``` shell
+# Find the IP address of the remote SSH connecction to open the firewall just to us
+# (The first IP address that has succeeded to connect to this server via ssh as root )
+ip=$(sudo grep -e "^.*Accepted.*$(whoami).* ssh2$" /var/log/auth.log  | head -1 | cut -d" " -f11)
+echo "Opening the firewall on port 80 and 443 for your remote IP address $ip"
+ufw allow proto tcp from $ip to any port 80
+ufw allow proto tcp from $ip to any port 443
+ufw reload
+ufw status
+```
+
+Similarly, in *.bashrc*, some command/functions are provided to open/close the firewall for your supposed public IP address. **Use with caution and always verify the firewall configuration with *sudo ufw status* ** (As this command is expected to be executed by a different user from root, this function looks for the last successful SSH connection of this user login id in order to find the public ip address to allow to pass through the fireall.
+
+``` shell
+function fw-allow {
+	# Find the IP address of the remote SSH connecction to open the firewall
+	ip=$(sudo grep -e "^.*Accepted.*$(whoami).* ssh2$" /var/log/auth.log  | tail -1 | cut -d" " -f11)
+	echo "Opening the firewall on port 80 and 443 for your remote IP address $ip"
+	sudo ufw allow proto tcp from $ip to any port 80
+	sudo ufw allow proto tcp from $ip to any port 443
+	sudo ufw reload
+	sudo ufw status
+  FIREWALL_PUPLIC_IP_ALLOWED=$ip
+  export FIREWALL_PUPLIC_IP_ALLOWED
+}
+
+function fw-delete {
+  if [ -z $FIREWALL_PUPLIC_IP_ALLOWED ] 
+  then
+	    # is there a known IP address that has opened the firewall ? If so, use it to close the firewall
+      echo "Trying to close the firewall on port 80 and 443 for your remote IP address $FIREWALL_PUPLIC_IP_ALLOWED"
+		  sudo ufw delete allow proto tcp from $FIREWALL_PUPLIC_IP_ALLOWED to any port 80
+      sudo ufw delete allow proto tcp from $FIREWALL_PUPLIC_IP_ALLOWED to any port 443
+ 		  set -u $FIREWALL_PUPLIC_IP_ALLOWED
+	else
+      # Find the IP address of my remote SSH connecction to try to close the firewall    	
+		  ip=$(sudo grep -e "^.*Accepted.*$(whoami).* ssh2$" /var/log/auth.log  | tail -1 | cut -d" " -f11)
+		  echo "Closing the firewall on port 80 and 443 for your remote IP address $ip"
+      sudo ufw delete allow proto tcp from $ip to any port 80
+      sudo ufw delete allow proto tcp from $ip to any port 443
+	fi
+  sudo ufw reload
+  sudo ufw status
+}
 
 ```
-Quicklinks to access the Hadoop/Spark admin pages (using Firefox on the server through x2goclient)
-   HDFS Admin : http://localhost:50070/
-   Yarn Admin : http://localhost:8088/cluster
-   Spark Admin (when spark is running) :http://localhost:4040/jobs/
+
 
 
 
 ## Things to improve
-   * check to replace R Studio Desktop by R Studio Server (may need some SSL certificates)
    * check Nvidia installers checksum in the installation script 
    * replace release candidate versions of Nvidia softwares by stable versions when available
    * Tensorflow installation : improve CROSSTOOL patch to include path to CUDA directory 
-   * improve security regarding hadoop/spark admin pages access
    * Possibility to have a post install script to be used in OVH manager when setting up the server ?
    * redirect some install display output to some logs file and have the instalaltion a bit more cleaner at display  
    * add a menu to select what sofwares to install. Improve installatio nscript arguments 
