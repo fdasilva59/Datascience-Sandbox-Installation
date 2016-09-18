@@ -484,8 +484,8 @@ if ($R_STD_DESKTOP) then
 	then
 	    echo "R Studio Desktop already installed : no change."
 	else
-	    # libgstreamer is used by rstudio
-            apt-get -y -q=2 install r-base libgstreamer0.10-0 libgstreamer-plugins-base0.10-dev 
+	    # libgstreamer is used by rstudio, libcurl is required to install swirl in R Studio
+            apt-get -y -q=2 install r-base libgstreamer0.10-0 libgstreamer-plugins-base0.10-dev libcurl4-openssl-dev
 	    wget $RSTUDIO_URL
 	    tar xf $RSTUDIO_FILE
             mv $RSTUDIO_DIR /usr/local/$RSTUDIO_DIR
@@ -511,7 +511,7 @@ if ($R_STD_SERVER) then
         then
              echo "R Studio Server already installed : no change."
         else
-                  apt-get -y -q=2 install r-base gdebi-core
+                  apt-get -y -q=2 install r-base gdebi-core libcurl4-openssl-dev
                   wget $RSTUDIO_SERVER_URL
                   dpkg -i $RSTUDIO_SERVER_FILE
                   rm $RSTUDIO_SERVER_FILE
