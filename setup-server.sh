@@ -237,10 +237,11 @@ apt-add-repository -y multiverse
 add-apt-repository -y ppa:x2go/stable 
 add-apt-repository -y ppa:webupd8team/java
 # Update to install R
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E084DAB9
+gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys E084DAB9
 gpg -a --export E084DAB9 | sudo apt-key add -
 echo "# Add CRAN mirror" >> /etc/apt/sources.list
 echo "deb $CRAN_MIRROR" >>/etc/apt/sources.list
+
 apt-get -q=2 update
 apt-get -y -q=2 upgrade
 
