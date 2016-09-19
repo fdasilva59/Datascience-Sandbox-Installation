@@ -6,7 +6,7 @@ Collection of scripts and configuration files to quickly setup a Datascience **s
 
 As I am learning/experimenting with Big Data and Machine Learning, I sometimes need to quickly setup/clone/restore a sandbox server with some various Data Science softwares. This collection of scripts/configurations files is intended to facilitate/automate this task. You can use it "as this", modify it to suit your project's requirements or simply get directions from it for a manual server installation.
 
-This script has been updated/tested with the very great **Innovation Lab Projet #1521** proposed by **OVH** (see https://www.runabove.com/index.xml) which consists in a dedicated server with the following configuration : 2x Intel Xeon E5-2630v3 (16 cores each / 32 cores in total), 128GB of RAM, 240 GB of SSD, 1 Nvidia GTX 1080 
+This script has been updated/tested with the very great **Innovation Lab Projet #1521** proposed by **OVH** (see https://www.runabove.com/titan-x-gpu-servers.xml) which consists in a dedicated server with the following configuration : 2x Intel Xeon E5-2630v3 (16 cores each / 32 cores in total), 128GB of RAM, 240 GB of SSD, 1 Nvidia GTX 1080 
 
 ## What it does :
 
@@ -64,7 +64,7 @@ You can use the following installation parameters :
     --tensorflow      to install TensorFlow 
     --torch           to install Torch 
     --hadoop          to install Hadoop/Yarn/Spark (Mono cluster / Sandbox)
-    --letsencrypt     to install Let's Encrypt (and manage free SSL certificates for R Studio Server and Hadoop)
+    --letsencrypt     to install Let’s Encrypt (and manage free SSL certificates for R Studio Server and Hadoop)
                       (You need to provide a valid domain name for your server)
     --rserver         to install R and R Studio Server (To be used through a Browser)
     --rdesktop        to install R and R Studio Desktop (To be used through a x2GoClient connection (via SSH)
@@ -104,7 +104,9 @@ This script has been developped for Ubuntu 14.04 It has not been tested on other
 
 The installation script is not intended to be executed several times (like to update a previous setup). Though it should work in most cases properly, not every cases have been tested. So if you want to use it after an initial setup, use it with caution at your own risks.
 
-** Let's Encrypt ** : It is highly recommended to protect the access to the admin pages of Hadoop/Spark or to R Studio Server via SSL access. In order to do so *you have to own/buy/provide a valid domain name* for your server (See Let's Encrypt section below)
+I met a bug when opening R Studio Desktop via x2goClient on Mac OS X / Quartz X11 : Menus from the main menu bar are not displayed. While this is OK if you know R Studio shortcuts or use the toolbars, this can be annoying. A work around for this bug is to install a light x windows manager on the server, like LXDE ( *apt-get -y install lxde* )  and open lxde via x2goClient, and then open R Studio Desktop in LXDE. Anyway, R Studio Server is a better alternative but you will have to own a domain name to get proper SSL certificates in order to secure the access.
+
+** Let's Encrypt ** : If your server is hosted in the cloud, in addition to some firewall rules, it is highly recommended to protect the access to the admin pages of Hadoop/Spark or to R Studio Server via SSL access. In order to do so *you have to own/buy/provide a valid domain name* for your server (See Let's Encrypt section below)
 
 ** BACKUP ** As usual, don't forget to backup data on you server, following the installation. In particular, if you you have generated Let's Encrypt SSL certificates, make a backup on another location ! 
 
@@ -316,9 +318,9 @@ The installation script will prompt you to disable ssh connection for user root 
 
 When generating SSL certificates with Let's Encrypt, cerbot requires port 443 to be open to validate some challenges. The installation script will open/close port 443 for this task to be performed.
 
-When installing Let's Encrypt, the installation script will install nginx to translate (proxy) the local address/ports of hadoop/spark admin pages and R studio to the subdomains described in the Let's Encrypot section.
+When installing Let's Encrypt, the installation script will install nginx to translate (proxy) the local address/ports of hadoop/spark admin pages and R studio to the subdomains described in the Let's Encrypt section.
 
-The *setup-server.sh* installation script will call the *gener_nginx_conf.sh* (in install subdirectory of this git project) to generate a very basic nginx configuration file using the domain name you have provided for Let's Encrypt. You might want to adjust this nginx connfiguration to suit your needs/requirements. The installation script save this nginx configuration in */etc/nginx/sites-enabled/nginx_conf*
+The *setup-server.sh* installation script will call the *gener_nginx_conf.sh* (in install subdirectory of this git project) to generate a very basic nginx configuration file using the domain name you have provided for Let's Encrypt. You might want to adjust this nginx configuration to suit your needs/requirements. The installation script save this nginx configuration in */etc/nginx/sites-enabled/nginx_conf*
 
 After installing the nginx server, the script will try to determine your public IP adress you are using to connect to the server (try to find the first IP address that has succeeded to connect to the server via ssh as root), and then it will open the firewall only for *this IP* adress on port 80 and 443. As always, verify and adjust if needed the firewall configuration
 
@@ -333,7 +335,7 @@ ufw reload
 ufw status
 ```
 
-Similarly, in *.bashrc*, some command/functions are provided to open/close the firewall for your supposed public IP address. **Use with caution and always verify the firewall configuration with *sudo ufw status* ** (As this command is expected to be executed by a different user from root, this function looks for the last successful SSH connection of this user login id in order to find the public ip address to allow to pass through the fireall.
+Similarly, in *.bashrc*, some command/functions are provided to open/close the firewall for your supposed public IP address. **Use with caution and always verify the firewall configuration with** *sudo ufw status* (As this command is expected to be executed by a different user from root, this function looks for the last successful SSH connection of this user login id in order to find the public ip address to allow to pass through the fireall.
 
 ``` shell
 function fw-allow {
@@ -379,6 +381,7 @@ function fw-delete {
    * check/improve firewall and secuirty management
    * check email/domain name format in the installation script for Let's Encrypt
    * Tensorflow installation : improve CROSSTOOL patch to include path to CUDA directory 
+   * Solution to the menu display issue with R Studio Desktop / x2goClient ? (on Mac OS X ? )
    * Possibility to have a post install script to be used in OVH manager when setting up the server ?
    * redirect some install display output to some logs file and have the instalaltion a bit more cleaner at display  
    * add a menu to select what sofwares to install. Improve installation script arguments 
