@@ -6,7 +6,7 @@ Collection of scripts and configuration files to quickly setup a Datascience **s
 
 As I am learning/experimenting with Big Data and Machine Learning, I sometimes need to quickly setup/clone/restore a sandbox server with some various Data Science softwares. This collection of scripts/configurations files is intended to facilitate/automate this task. You can use it "as this", modify it to suit your project's requirements or simply get directions from it for a manual server installation.
 
-This script has been updated/tested with the very great **Innovation Lab Projet #1521** proposed by **OVH** (see https://www.runabove.com/index.xml) which consists in a dedicated server with the following configuration : 2x Intel Xeon E5-2630v3 (16 cores each / 32 cores in total), 128GB of RAM, 240 GB of SSD, 1 Nvidia GTX 1080 
+This script has been updated/tested with the very great **Innovation Lab Projet #1521** proposed by **OVH** (see https://www.runabove.com/titan-x-gpu-servers.xml) which consists in a dedicated server with the following configuration : 2x Intel Xeon E5-2630v3 (16 cores each / 32 cores in total), 128GB of RAM, 240 GB of SSD, 1 Nvidia GTX 1080 
 
 ## What it does :
 
@@ -14,7 +14,7 @@ From a fresh installation of Ubuntu,
 
 - update ubuntu, setup a firewall, create a user, ...
 - provide an option to setup a **Nvidia Pascal GTX1080** on Ubuntu 14.04 (Install drivers + cuda 8.0) 
-- provide an option to install (compile sources) **Tensorflow r0.10 (with or without Nvidia GPU support)** 
+- provide an option to install (compile sources) **Tensorflow r0.11RC (with or without Nvidia GPU support)** 
 - provide an option to install **Torch** 
 - provide an option to install **Hadoop 2.7 / Spark 2.0** as a Mono-cluster
 - install some tools like x2go server to be able to open program like Firefox or R Studio through a ssh remote connection
@@ -27,9 +27,8 @@ From a fresh installation of Ubuntu,
 
 * Ubuntu 14.04 LTS (with original kernel 3.13.0-95)
 * If you want to setup the **Nvidia graphic card**, you will have to download the following softwares from Nvidia website (you might need to register a free account and enroll to some Nvidia free developpers programs). Note, these versions are the latest available at the time of writing these scripts : 
-   * NVIDIA-Linux-x86_64-367.44.run* (see :http://www.nvidia.com/drivers )
-   * cuda_8.0.27_linux.run* (see : https://developer.nvidia.com/cuda-release-candidate-download  )
-   * cuda_8.0.27.1_linux.run* (see : https://developer.nvidia.com/cuda-release-candidate-download )
+   * NVIDIA-Linux-x86_64-367.57.run* (see :http://www.nvidia.com/drivers )
+   * cuda_8.0.44_linux.run* (see : https://developer.nvidia.com/cuda-downloads )
    * cudnn-8.0-linux-x64-v5.1.tgz (see : https://developer.nvidia.com/cudnn )
 
 * The *setup-server.sh* script and *install* directory (and its content) need to be installed in a */root/Datascience-Sandbox-Installation/* directory. You might change the location or rename the directory, but in that case you will have to update the location in the *ressources* variable defined at the begining of the *setup-server.sh* script (Make sure the *.run* scripts are executable (*chmod u+x *.run*)). 
@@ -64,10 +63,11 @@ You can use the following installation parameters :
     --tensorflow      to install TensorFlow 
     --torch           to install Torch 
     --hadoop          to install Hadoop/Yarn/Spark (Mono cluster / Sandbox)
-    --letsencrypt     to install Let's Encrypt (and manage free SSL certificates for R Studio Server and Hadoop)
+    --letsencrypt     to install Let’s Encrypt (and manage free SSL certificates for R Studio Server and Hadoop)
                       (You need to provide a valid domain name for your server)
     --rserver         to install R and R Studio Server (To be used through a Browser)
     --rdesktop        to install R and R Studio Desktop (To be used through a x2GoClient connection (via SSH)
+    --jupyter         to install jupyter notebooks (Will also install IRkernel if R is installed)
     --conda           to install miniconda 
     --help            to display this help menu 
 ```
@@ -84,7 +84,7 @@ Suggestion of configuration  :
 
  * Full Data Science Sandbox : 
 
-      `./setup-server.sh --cuda --tensorflow --torch --hadoop --letsencrypt --rserver`
+      `./setup-server.sh --cuda --tensorflow --torch --hadoop --letsencrypt --rserver --jupyter`
 
 
 The script requires to be executed by the root user. 
@@ -104,7 +104,9 @@ This script has been developped for Ubuntu 14.04 It has not been tested on other
 
 The installation script is not intended to be executed several times (like to update a previous setup). Though it should work in most cases properly, not every cases have been tested. So if you want to use it after an initial setup, use it with caution at your own risks.
 
-** Let's Encrypt ** : It is highly recommended to protect the access to the admin pages of Hadoop/Spark or to R Studio Server via SSL access. In order to do so *you have to own/buy/provide a valid domain name* for your server (See Let's Encrypt section below)
+I met a bug when opening R Studio Desktop via x2goClient on Mac OS X / Quartz X11 : Menus from the main menu bar are not displayed. While this is OK if you know R Studio shortcuts or use the toolbars, this can be annoying. A work around for this bug is to install a light x windows manager on the server, like LXDE ( *apt-get -y install lxde* )  and open lxde via x2goClient, and then open R Studio Desktop in LXDE. Anyway, R Studio Server is a better alternative but you will have to own a domain name to get proper SSL certificates in order to secure the access.
+
+** Let's Encrypt ** : If your server is hosted in the cloud, in addition to some firewall rules, it is highly recommended to protect the access to the admin pages of Hadoop/Spark or to R Studio Server via SSL access. In order to do so *you have to own/buy/provide a valid domain name* for your server (See Let's Encrypt section below)
 
 ** BACKUP ** As usual, don't forget to backup data on you server, following the installation. In particular, if you you have generated Let's Encrypt SSL certificates, make a backup on another location ! 
 
@@ -171,11 +173,10 @@ apt-get -y  install oracle-java8-installer
 apt-get -y  install linux-headers-$(uname -r)
 
 # Install Nvidia GTX1080 driver
-./NVIDIA-Linux-x86_64-367.44.run -a -s
+./NVIDIA-Linux-x86_64-367.57.run -a -s
 
-# Install CUDA 8.0 (followed by patch installation)
-./cuda_8.0.27_linux.run  --toolkit --samples --samplespath=/usr/local/cuda-8.0/samples --override --silent
-./cuda_8.0.27.1_linux.run --accept-eula --installdir=/usr/local/cuda --silent
+# Install CUDA 8.0 
+./cuda_8.0.44_linux.run  --toolkit --samples --samplespath=/usr/local/cuda-8.0/samples --override --silent
 
 # Install cuDNN 
 tar -xf cudnn-8.0-linux-x64-v5.1.tgz -C /usr/local
@@ -195,7 +196,7 @@ apt-get -y  install bazel
 ########  With developer/user account (not root) in home directory :
 
 # clone the Tensorflow source
-git clone --branch v0.10.0rc0 https://github.com/tensorflow/tensorflow
+git clone --branch v0.11.0rc0 https://github.com/tensorflow/tensorflow
 cd tensorflow
 
 # Configure Tensorflow
@@ -209,8 +210,10 @@ cd tensorflow
 # Do you wish to build TensorFlow with Google Cloud Platform support? \[y/N\] : 
 ######-- ANSWER -->  N 
 
-# No Google Cloud Platform support will be enabled for TensorFlow Do you wish to build TensorFlow 
-# with GPU support? \[y/N\]:
+# Do you wish to build TensorFlow with Hadoop File System support? [y/N] N
+#####-- ANSWER -->  N 
+
+# Do you wish to build TensorFlow with GPU support? \[y/N\]:
 ######-- ANSWER --> y
 
 # Please specify which gcc should be used by nvcc as the host compiler. 
@@ -262,7 +265,8 @@ Then you will have to associate your domain with the IP address of your server (
   - add domain  rstudio.YOUR_DOMAIN.COM to a domain CNAME with target YOUR_DOMAIN.COM     # Sub-domain to reach R Studio Server 
   - add domain  hdfs.YOUR_DOMAIN.COM to a domain CNAME with target YOUR_DOMAIN.COM        # Sub-domain to reach Hadoop HDFS Admin page
   - add domain  cluster.YOUR_DOMAIN.COM to a domain CNAME with target YOUR_DOMAIN.COM     # Sub-domain to reach Hadoop Ressource Manager 
-  - add domain  jobs.YOUR_DOMAIN.COM to a domain CNAME with target YOUR_DOMAIN.COM         # Sub-domain to reach Spark Jobs Admin page (When Spark running) 
+  - add domain  jobs.YOUR_DOMAIN.COM to a domain CNAME with target YOUR_DOMAIN.COM        # Sub-domain to reach Spark Jobs Admin page (When Spark running) 
+  - add domain  jupyter.YOUR_DOMAIN.COM to a domain CNAME with target YOUR_DOMAIN.COM     # Sub-domain to reach the Jupyter notebook (When Jupyter running) 
 
 (You migh thave to wait 24/48H that DNS get updated over the internet to reflect these changes) 
 
@@ -274,6 +278,7 @@ When used with the option *--letsencrypt*, the *setup-server.sh* script will ins
   - hdfs.YOUR_DOMAIN.COM (if you are installing Hadoop/Spark with the option *--hadoop*)
   - cluster.YOUR_DOMAIN.COM (if you are installing Hadoop/Spark with the option *--hadoop*)
   - jobs.YOUR_DOMAIN.COM (if you are installing Hadoop/Spark with the option *--hadoop*)
+  - jupyter.YOUR_DOMAIN.COM (if you are installing Jupyter notebooks with the option *--jupyter*)
 
 **Important** In order to register these certificates, the *setup-server.sh* script will prompt you for your domain name and contact email address : make sure the information provided are valid otherwise cerbot and the installation script will fail. 
 (Note : the script only test for empty input. There is not (yet) a regex to verify for valid domain name or valid email address format)
@@ -304,6 +309,15 @@ Quicklinks to access the Hadoop/Spark admin pages (using Firefox on the server t
    
 (If you own a domain name, have installed some Let's Encrypt SSL certificates, and have opened the firewall, you will be able to access this admin pages via your browser over the internet)
 
+## Usage : how to start/stop the Jupyter notebooks (if installed)
+
+If you have installed Jupyter in your Sandbox, you can start / stop Jupyter using the following 2 command/functions (defined in the .bashrc file) :
+  - *jp-start*
+  - *jp-stop*
+  
+Quicklinks to access the Jupyter notebook (using Firefox on the server through x2goclient)
+   * Jupyter : http://localhost:8888
+
 ## Important note about the firewall
 
 By default the firewall will be enabled by the installation script via  *ufw*. Only Port 22 will be enabled
@@ -316,9 +330,9 @@ The installation script will prompt you to disable ssh connection for user root 
 
 When generating SSL certificates with Let's Encrypt, cerbot requires port 443 to be open to validate some challenges. The installation script will open/close port 443 for this task to be performed.
 
-When installing Let's Encrypt, the installation script will install nginx to translate (proxy) the local address/ports of hadoop/spark admin pages and R studio to the subdomains described in the Let's Encrypot section.
+When installing Let's Encrypt, the installation script will install nginx to translate (proxy) the local address/ports of hadoop/spark admin pages and R studio to the subdomains described in the Let's Encrypt section.
 
-The *setup-server.sh* installation script will call the *gener_nginx_conf.sh* (in install subdirectory of this git project) to generate a very basic nginx configuration file using the domain name you have provided for Let's Encrypt. You might want to adjust this nginx connfiguration to suit your needs/requirements. The installation script save this nginx configuration in */etc/nginx/sites-enabled/nginx_conf*
+The *setup-server.sh* installation script will call the *gener_nginx_conf.sh* (in install subdirectory of this git project) to generate a very basic nginx configuration file using the domain name you have provided for Let's Encrypt. You might want to adjust this nginx configuration to suit your needs/requirements. The installation script save this nginx configuration in */etc/nginx/sites-enabled/nginx_conf*
 
 After installing the nginx server, the script will try to determine your public IP adress you are using to connect to the server (try to find the first IP address that has succeeded to connect to the server via ssh as root), and then it will open the firewall only for *this IP* adress on port 80 and 443. As always, verify and adjust if needed the firewall configuration
 
@@ -333,7 +347,7 @@ ufw reload
 ufw status
 ```
 
-Similarly, in *.bashrc*, some command/functions are provided to open/close the firewall for your supposed public IP address. **Use with caution and always verify the firewall configuration with *sudo ufw status* ** (As this command is expected to be executed by a different user from root, this function looks for the last successful SSH connection of this user login id in order to find the public ip address to allow to pass through the fireall.
+Similarly, in *.bashrc*, some command/functions are provided to open/close the firewall for your supposed public IP address. **Use with caution and always verify the firewall configuration with** *sudo ufw status* (As this command is expected to be executed by a different user from root, this function looks for the last successful SSH connection of this user login id in order to find the public ip address to allow to pass through the fireall.
 
 ``` shell
 function fw-allow {
@@ -375,10 +389,10 @@ function fw-delete {
 ## Things to improve
    * check Nvidia installers checksum in the installation script
    * check R studio server checksum in the installation script
-   * replace release candidate versions of Nvidia softwares by stable versions when available
-   * check/improve firewall and secuirty management
+   * check/improve firewall and security management
    * check email/domain name format in the installation script for Let's Encrypt
    * Tensorflow installation : improve CROSSTOOL patch to include path to CUDA directory 
+   * Solution to the menu display issue with R Studio Desktop / x2goClient ? (on Mac OS X ? )
    * Possibility to have a post install script to be used in OVH manager when setting up the server ?
    * redirect some install display output to some logs file and have the instalaltion a bit more cleaner at display  
    * add a menu to select what sofwares to install. Improve installation script arguments 
