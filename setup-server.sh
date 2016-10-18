@@ -36,20 +36,21 @@ SHA256_Hadoop="D489DF3808244B906EB38F4D081BA49E50C4603DB03EFD5E594A1E98B09259C2"
 URL_Hadoop="http://dist.apache.org/repos/dist/release/hadoop/common/hadoop-2.7.3/hadoop-2.7.3.tar.gz"
 
 # Spark file, version, url and signature
-VERSION_Spark="spark-2.0.0-bin-hadoop2.7"
-ARCHIVE_Spark="spark-2.0.0-bin-hadoop2.7.tgz"
-URL_Spark="http://apache.mirrors.ovh.net/ftp.apache.org/dist/spark/spark-2.0.0/spark-2.0.0-bin-hadoop2.7.tgz"
-MD5_Spark="3A1598EB7C32384830C48C779141C1C6"
+VERSION_Spark="spark-2.0.1-bin-hadoop2.7"
+ARCHIVE_Spark="spark-2.0.1-bin-hadoop2.7.tgz"
+URL_Spark="http://apache.mirrors.ovh.net/ftp.apache.org/dist/spark/spark-2.0.1/spark-2.0.1-bin-hadoop2.7.tgz"
+MD5_Spark="43AA7C28B9670E65CB4F395000838860"
 
 # NVIDIA drivers
-DRIVERS_INSTALL="NVIDIA-Linux-x86_64-367.44.run"
-NVIDIA_VERSION="367.44"
-CUDA_INSTALL="cuda_8.0.27_linux.run"
-CUDA_PATCH="cuda_8.0.27.1_linux.run"
+DRIVERS_INSTALL="NVIDIA-Linux-x86_64-367.57.run"
+NVIDIA_VERSION="367.57"
+CUDA_INSTALL="cuda_8.0.44_linux.run"
+#CUDA_PATCH="cuda_8.0.27.1_linux.run"
 CUDNN_INSTALL="cudnn-8.0-linux-x64-v5.1.tgz"
 
 # TensorFlow version (tag)
-TF_TAG="v0.10.0rc0"
+#TF_TAG="v0.10.0rc0"
+TF_TAG="v0.11.0rc0"
 
 # RStudio
 CRAN_MIRROR="https://mirror.ibcp.fr/pub/CRAN/bin/linux/ubuntu trusty/" 
@@ -69,6 +70,7 @@ LETS_ENCRYPT=false
 R=false
 R_STD_DESKTOP=false
 R_STD_SERVER=false
+JUPYTER=false
 CONDA=false
 
 
@@ -99,6 +101,8 @@ You can use the following installation parameters :
 
     --rdesktop        to install R and R Studio Desktop (To be used through a x2GoClient connection (via SSH)
 
+    --jupyter	      to install jupyter notebooks (Will also install IRkernel if R is installed)
+
     --conda           to install miniconda 
 
     --help            to display this help menu
@@ -118,7 +122,7 @@ Suggestion of configuration  :
 
  * Full Data Science Sandbox : 
 
-      ./setup-server.sh --cuda --tensorflow --torch --hadoop --letsencrypt --rserver
+      ./setup-server.sh --cuda --tensorflow --torch --hadoop --letsencrypt --rserver --jupyter
   
 
 "
@@ -136,7 +140,7 @@ fi
 while [ $# -gt 0 ]
 do
    case "$1" in
-      --tensorflow) echo "Install TensorFlow" 
+      --tensorflow)   echo "Install TensorFlow" 
                       TF=true
                       ;;
       --cuda)         echo "CUDA GPU support ensabled for TensorFlow (and/or Torch)"  
@@ -157,6 +161,9 @@ do
       --rdesktop)     echo "Install RStudio Desktop"
                       R_STD_DESKTOP=true  
                       ;;
+      --jupyter)      echo "Install jupyter notebooks (Will also install IRkernel if R is installed)"
+                      JUPYTER=true
+		      ;;
       --conda)        echo "Install miniconda"
                       CONDA=true
                       ;;
@@ -197,7 +204,7 @@ fi
 
 #### HACK FOR DEBUG
 # BEGIN DEBUG (Put just before begining of a portion of codecto skip)
-#if false; then 
+# if false; then 
 # END DEBUG (Put just after a portion of code to skip)
 # fi
 
@@ -615,6 +622,11 @@ then
 				/root/certbot-auto/certbot-auto certonly -d cluster.$dn --standalone  --noninteractive --agree-tos --email $email_address
 				/root/certbot-auto/certbot-auto certonly -d jobs.$dn --standalone  --noninteractive --agree-tos --email $email_address
 			fi
+                        if ($JUPYTER) then
+                                echo "Trying to generate a Let's Encrypt SSL certificate for jupyter sub-domain : jupyter.$dn"
+                                /root/certbot-auto/certbot-auto certonly -d jupyter.$dn --standalone  --noninteractive --agree-tos --email $email_address
+                        fi
+
                        # Generate Nginx server conf for given domains
                         $ressources/gener_nginx_conf.sh $dn
 
@@ -736,8 +748,8 @@ if ($CUDA) then
 		if [ -f $ressources/nvidia/$DRIVERS_INSTALL ] 
 		then 
 		     echo "Found local version of $DRIVERS_INSTALL"
-		     apt-get -y -q=2 install linux-headers-$(uname -r)
-		     $ressources/nvidia/NVIDIA-Linux-x86_64-367.44.run -a -s
+		     apt-get -y -q=2 install linux-headers-$(uname -r) 
+		     $ressources/nvidia/$DRIVERS_INSTALL -a -s
 		else
 		     echo
                      echo "Cannot find $ressources/nvidia/$DRIVERS_INSTALL"
@@ -774,20 +786,22 @@ if ($CUDA ) then
              exit
         fi
 
-        if [ -f $ressources/nvidia/$CUDA_PATCH ]
-        then 
-             echo "Found local version of $CUDA_PATCH"
-             $ressources/nvidia/$CUDA_PATCH --accept-eula --installdir=/usr/local/cuda --silent
-        else
-             echo
-             echo "Cannot find $ressources/nvidia/$CUDA_PATCH"
-             echo "Please, visit https://developer.nvidia.com/cuda-release-candidate-download to download CUDA for Pascal architecture"
-             read -p "Do you wish to continue the server installation [Y/N] " yn
-             case $yn in
-                   [Yy]* ) echo "" ;;
-                       * ) echo "Aborting Installation." ; exit ;;
-             esac
-        fi
+	# Uncomment following block if it exist a cuda patch to apply after installation of cuda
+	#
+        #if [ -f $ressources/nvidia/$CUDA_PATCH ]
+        #then 
+        #     echo "Found local version of $CUDA_PATCH"
+        #     $ressources/nvidia/$CUDA_PATCH --accept-eula --installdir=/usr/local/cuda --silent
+        #else
+        #     echo
+        #     echo "Cannot find $ressources/nvidia/$CUDA_PATCH"
+        #     echo "Please, visit https://developer.nvidia.com/cuda-release-candidate-download to download CUDA for Pascal architecture"
+        #     read -p "Do you wish to continue the server installation [Y/N] " yn
+        #     case $yn in
+        #           [Yy]* ) echo "" ;;
+        #               * ) echo "Aborting Installation." ; exit ;;
+        #     esac
+        #fi
 
 else
         echo
@@ -825,6 +839,7 @@ else
         echo "**************************************************"
         echo
 fi
+
 
 if ($TF)
 then
@@ -931,6 +946,30 @@ else
 fi
 
 
+if ($JUPYTER)
+then
+	echo
+        echo "*************************************************************"
+        echo "*****         Step 22 : Install Jupyter notebook        *****"
+        echo "*************************************************************"
+        echo
+ 
+	pip -q install --upgrade pip
+        pip -q install jupyter 
+        
+        if [ -f /usr/bin/R ]
+	then
+	    echo "R language detected : installing IRkernel for Jupyter"
+	    su - $user_login -c "Rscript $ressources/IRkernel.R"       
+	fi
+else
+        echo
+        echo "*************************************************************"
+        echo "*****    SKIP Step 22 : Install Jupyter notebook        *****"
+        echo "*************************************************************"
+        echo
+fi
+ 
 # Reboot the system
 echo
 echo "*************************************************************"

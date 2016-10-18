@@ -92,6 +92,7 @@ alias cdhdlog="cd /usr/local/hadoop/logs"
 alias Aconda='source activate $1'
 alias Dconda='source deactivate'
 
+
 # Add an "alert" alias for long running commands.  Use like so:
 #   sleep 10; alert
 alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
@@ -200,5 +201,17 @@ function hd-stop {
         stop-dfs.sh
 	# We don't automatically close the firewall as the user might still need to access other services
 	echo "Don't forget to close the firewall if needed !"
+}
+
+function jp-start {
+	echo "Starting Jupyter notebook" 
+	unset XDG_RUNTIME_DIR
+	cd /home/hduser/develop
+	jupyter notebook --no-browser > /dev/null 2>&1 &
+}
+
+function jp-stop {
+        echo "Stopping Jupyter notebook"
+	killall jupyter-notebook
 }
 

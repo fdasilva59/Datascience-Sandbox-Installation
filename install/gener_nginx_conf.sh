@@ -81,6 +81,23 @@ server {
                 proxy_pass http://localhost:4040;
         }
 }
+
+# Port 443 : access jupyter notebooks
+server {
+        listen 443 ssl;
+        ssl_certificate /etc/letsencrypt/live/jupyter.$DOMAIN_NAME/cert.pem;
+        ssl_certificate_key /etc/letsencrypt/live/jupyter.$DOMAIN_NAME/privkey.pem;
+        ssl_protocols  TLSv1.2;
+
+        server_name jupyter.$DOMAIN_NAME ;
+
+        #Proxy
+        location / {
+                proxy_pass http://localhost:8888;
+        }
+}
+
+
 "
 # End Nginx template
 
