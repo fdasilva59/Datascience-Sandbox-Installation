@@ -58,7 +58,7 @@ No Hadoop File System support will be enabled for TensorFlow\r
 Found possible Python library paths:\r
   /usr/lib/python2.7/dist-packages\r
   /usr/local/lib/python2.7/dist-packages\r
-Please input the desired Python library path to use.  Default is \[/usr/lib/python2.7/dist-packages\]\r
+Please input the desired Python library path to use.  Default is \[/usr/local/lib/python2.7/dist-packages\]\r
 "
 send -- "\r"
 expect -exact "\r
