@@ -44,8 +44,7 @@ if {$force_conservative} {
 set timeout -1
 spawn ./configure
 match_max 100000
-expect -exact "/home/hduser/tensorflow /home/hduser/tensorflow\r
-Please specify the location of python. \[Default is /usr/bin/python\]: "
+expect -exact "Please specify the location of python. \[Default is /usr/bin/python\]: "
 send -- "\r"
 expect -exact "\r
 Do you wish to build TensorFlow with Google Cloud Platform support? \[y/N\] "
