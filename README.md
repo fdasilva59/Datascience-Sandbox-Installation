@@ -14,7 +14,7 @@ From a fresh installation of Ubuntu,
 
 - update ubuntu, setup a firewall, create a user, ...
 - provide an option to setup a **Nvidia Pascal GTX1080** on Ubuntu 14.04 (Install drivers + cuda 8.0) 
-- provide an option to install (compile sources) **Tensorflow r0.10 (with or without Nvidia GPU support)** 
+- provide an option to install (compile sources) **Tensorflow r0.11RC (with or without Nvidia GPU support)** 
 - provide an option to install **Torch** 
 - provide an option to install **Hadoop 2.7 / Spark 2.0** as a Mono-cluster
 - install some tools like x2go server to be able to open program like Firefox or R Studio through a ssh remote connection
@@ -27,9 +27,8 @@ From a fresh installation of Ubuntu,
 
 * Ubuntu 14.04 LTS (with original kernel 3.13.0-95)
 * If you want to setup the **Nvidia graphic card**, you will have to download the following softwares from Nvidia website (you might need to register a free account and enroll to some Nvidia free developpers programs). Note, these versions are the latest available at the time of writing these scripts : 
-   * NVIDIA-Linux-x86_64-367.44.run* (see :http://www.nvidia.com/drivers )
-   * cuda_8.0.27_linux.run* (see : https://developer.nvidia.com/cuda-release-candidate-download  )
-   * cuda_8.0.27.1_linux.run* (see : https://developer.nvidia.com/cuda-release-candidate-download )
+   * NVIDIA-Linux-x86_64-367.57.run* (see :http://www.nvidia.com/drivers )
+   * cuda_8.0.44_linux.run* (see : https://developer.nvidia.com/cuda-downloads )
    * cudnn-8.0-linux-x64-v5.1.tgz (see : https://developer.nvidia.com/cudnn )
 
 * The *setup-server.sh* script and *install* directory (and its content) need to be installed in a */root/Datascience-Sandbox-Installation/* directory. You might change the location or rename the directory, but in that case you will have to update the location in the *ressources* variable defined at the begining of the *setup-server.sh* script (Make sure the *.run* scripts are executable (*chmod u+x *.run*)). 
@@ -68,6 +67,7 @@ You can use the following installation parameters :
                       (You need to provide a valid domain name for your server)
     --rserver         to install R and R Studio Server (To be used through a Browser)
     --rdesktop        to install R and R Studio Desktop (To be used through a x2GoClient connection (via SSH)
+    --jupyter         to install jupyter notebooks (Will also install IRkernel if R is installed)
     --conda           to install miniconda 
     --help            to display this help menu 
 ```
@@ -84,7 +84,7 @@ Suggestion of configuration  :
 
  * Full Data Science Sandbox : 
 
-      `./setup-server.sh --cuda --tensorflow --torch --hadoop --letsencrypt --rserver`
+      `./setup-server.sh --cuda --tensorflow --torch --hadoop --letsencrypt --rserver --jupyter`
 
 
 The script requires to be executed by the root user. 
@@ -173,11 +173,10 @@ apt-get -y  install oracle-java8-installer
 apt-get -y  install linux-headers-$(uname -r)
 
 # Install Nvidia GTX1080 driver
-./NVIDIA-Linux-x86_64-367.44.run -a -s
+./NVIDIA-Linux-x86_64-367.57.run -a -s
 
-# Install CUDA 8.0 (followed by patch installation)
-./cuda_8.0.27_linux.run  --toolkit --samples --samplespath=/usr/local/cuda-8.0/samples --override --silent
-./cuda_8.0.27.1_linux.run --accept-eula --installdir=/usr/local/cuda --silent
+# Install CUDA 8.0 
+./cuda_8.0.44_linux.run  --toolkit --samples --samplespath=/usr/local/cuda-8.0/samples --override --silent
 
 # Install cuDNN 
 tar -xf cudnn-8.0-linux-x64-v5.1.tgz -C /usr/local
@@ -197,7 +196,7 @@ apt-get -y  install bazel
 ########  With developer/user account (not root) in home directory :
 
 # clone the Tensorflow source
-git clone --branch v0.10.0rc0 https://github.com/tensorflow/tensorflow
+git clone --branch v0.11.0rc0 https://github.com/tensorflow/tensorflow
 cd tensorflow
 
 # Configure Tensorflow
@@ -211,8 +210,10 @@ cd tensorflow
 # Do you wish to build TensorFlow with Google Cloud Platform support? \[y/N\] : 
 ######-- ANSWER -->  N 
 
-# No Google Cloud Platform support will be enabled for TensorFlow Do you wish to build TensorFlow 
-# with GPU support? \[y/N\]:
+# Do you wish to build TensorFlow with Hadoop File System support? [y/N] N
+#####-- ANSWER -->  N 
+
+# Do you wish to build TensorFlow with GPU support? \[y/N\]:
 ######-- ANSWER --> y
 
 # Please specify which gcc should be used by nvcc as the host compiler. 
@@ -264,7 +265,8 @@ Then you will have to associate your domain with the IP address of your server (
   - add domain  rstudio.YOUR_DOMAIN.COM to a domain CNAME with target YOUR_DOMAIN.COM     # Sub-domain to reach R Studio Server 
   - add domain  hdfs.YOUR_DOMAIN.COM to a domain CNAME with target YOUR_DOMAIN.COM        # Sub-domain to reach Hadoop HDFS Admin page
   - add domain  cluster.YOUR_DOMAIN.COM to a domain CNAME with target YOUR_DOMAIN.COM     # Sub-domain to reach Hadoop Ressource Manager 
-  - add domain  jobs.YOUR_DOMAIN.COM to a domain CNAME with target YOUR_DOMAIN.COM         # Sub-domain to reach Spark Jobs Admin page (When Spark running) 
+  - add domain  jobs.YOUR_DOMAIN.COM to a domain CNAME with target YOUR_DOMAIN.COM        # Sub-domain to reach Spark Jobs Admin page (When Spark running) 
+  - add domain  jupyter.YOUR_DOMAIN.COM to a domain CNAME with target YOUR_DOMAIN.COM     # Sub-domain to reach the Jupyter notebook (When Jupyter running) 
 
 (You migh thave to wait 24/48H that DNS get updated over the internet to reflect these changes) 
 
@@ -276,6 +278,7 @@ When used with the option *--letsencrypt*, the *setup-server.sh* script will ins
   - hdfs.YOUR_DOMAIN.COM (if you are installing Hadoop/Spark with the option *--hadoop*)
   - cluster.YOUR_DOMAIN.COM (if you are installing Hadoop/Spark with the option *--hadoop*)
   - jobs.YOUR_DOMAIN.COM (if you are installing Hadoop/Spark with the option *--hadoop*)
+  - jupyter.YOUR_DOMAIN.COM (if you are installing Jupyter notebooks with the option *--jupyter*)
 
 **Important** In order to register these certificates, the *setup-server.sh* script will prompt you for your domain name and contact email address : make sure the information provided are valid otherwise cerbot and the installation script will fail. 
 (Note : the script only test for empty input. There is not (yet) a regex to verify for valid domain name or valid email address format)
@@ -305,6 +308,15 @@ Quicklinks to access the Hadoop/Spark admin pages (using Firefox on the server t
    * Spark Admin (when spark is running) :http://localhost:4040/jobs/
    
 (If you own a domain name, have installed some Let's Encrypt SSL certificates, and have opened the firewall, you will be able to access this admin pages via your browser over the internet)
+
+## Usage : how to start/stop the Jupyter notebooks (if installed)
+
+If you have installed Jupyter in your Sandbox, you can start / stop Jupyter using the following 2 command/functions (defined in the .bashrc file) :
+  - *jp-start*
+  - *jp-stop*
+  
+Quicklinks to access the Jupyter notebook (using Firefox on the server through x2goclient)
+   * Jupyter : http://localhost:8888
 
 ## Important note about the firewall
 
@@ -377,8 +389,7 @@ function fw-delete {
 ## Things to improve
    * check Nvidia installers checksum in the installation script
    * check R studio server checksum in the installation script
-   * replace release candidate versions of Nvidia softwares by stable versions when available
-   * check/improve firewall and secuirty management
+   * check/improve firewall and security management
    * check email/domain name format in the installation script for Let's Encrypt
    * Tensorflow installation : improve CROSSTOOL patch to include path to CUDA directory 
    * Solution to the menu display issue with R Studio Desktop / x2goClient ? (on Mac OS X ? )
