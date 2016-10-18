@@ -960,7 +960,11 @@ then
         if [ -f /usr/bin/R ]
 	then
 	    echo "R language detected : installing IRkernel for Jupyter"
-	    su - $user_login -c "Rscript $ressources/IRkernel.R"       
+	    cp $ressources/IRkernel.R /home/$user_login
+            chown $user_login:$user_group /home/$user_login/IRkernel.R
+	    chown -R $user_login:$user_group /usr/local/lib/R/site-library
+	    su - $user_login -c "Rscript /home/$user_login/IRkernel.R" 
+	    rm /home/$user_login/IRkernel.R      
 	fi
 else
         echo
