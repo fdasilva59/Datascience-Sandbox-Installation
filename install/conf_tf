@@ -49,9 +49,23 @@ expect -exact "Please specify the location of python. \[Default is /usr/bin/pyth
 send -- "\r"
 expect -exact "\r
 Do you wish to build TensorFlow with Google Cloud Platform support? \[y/N\] "
+send -- "N\r"
+expect -exact "N\r
+No Google Cloud Platform support will be enabled for TensorFlow\r
+Do you wish to build TensorFlow with Hadoop File System support? \[y/N\] "
+send -- "N\r"
+expect -exact "N\r
+No Hadoop File System support will be enabled for TensorFlow\r
+Found possible Python library paths:\r
+  /usr/lib/python2.7/dist-packages\r
+  /usr/local/lib/python2.7/dist-packages\r
+  /home/hduser/develop/\r
+Please input the desired Python library path to use.  Default is \[/usr/lib/python2.7/dist-packages\]\r
+"
 send -- "\r"
 expect -exact "\r
-No Google Cloud Platform support will be enabled for TensorFlow\r
+/usr/lib/python2.7/dist-packages\r
 Do you wish to build TensorFlow with GPU support? \[y/N\] "
 send -- "N\r"
 expect eof
+
