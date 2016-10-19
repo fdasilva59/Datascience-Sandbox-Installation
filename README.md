@@ -125,7 +125,7 @@ you can check that the Nvidia drivers are correctly installed by running this co
 $ nvidia-smi 
       
 +-----------------------------------------------------------------------------+
-| NVIDIA-SMI 367.44                 Driver Version: 367.44                    |
+| NVIDIA-SMI 367.57                 Driver Version: 367.57                    |
 |-------------------------------+----------------------+----------------------+
 | GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
 | Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
@@ -144,11 +144,6 @@ $
 ```
 
 Also prior to installing the Nvidia drivers, the Linux kernel sources (generic) corresponding to the used kernel needs to be installed. 
-
-Then, I met compilation issues in Tensorflow when compiling with the cuda option. I found some tips on the issue here : https://github.com/tensorflow/tensorflow/issues/3431#issuecomment-234131699 
-So I used awk to patch one Tensorflow source file in order to add the line `cxx_builtin_include_directory: "/usr/local/cuda-8.0/include" ` in the file `tensorflow/third_party/gpus/crosstool/CROSSTOOL` 
-
-Note that it did not worked if I used the */usr/local/cuda* unix link that points to the actual directory */usr/local/cuda-8.0*
 
 
 If you go for a manual installation, here is what the script is executing :
@@ -205,13 +200,15 @@ cd tensorflow
 ##########################################################################################
 # Below, the answers to provide when being prompted by the configure script :
 # Please specify the location of python. \[Default is /usr/bin/python\]: 
-######-- ANSWER --> use default
+######-- ANSWER --> use default /usr/bin/python
 
 # Do you wish to build TensorFlow with Google Cloud Platform support? \[y/N\] : 
 ######-- ANSWER -->  N 
 
 # Do you wish to build TensorFlow with Hadoop File System support? [y/N] N
-#####-- ANSWER -->  N 
+
+# Please input the desired Python library path to use.  Default is [/usr/local/lib/python2.7/dist-packages]
+#####-- ANSWER --> use default /usr/lib/python2.7/dist-packages 
 
 # Do you wish to build TensorFlow with GPU support? \[y/N\]:
 ######-- ANSWER --> y
@@ -237,13 +234,6 @@ cd tensorflow
 ######-- ANSWER --> 6.1
 
 ##########################################################################################
-
-# Need to include link to CUDA directory in CROSSTOOL file (Don't forget to replace [user] by the user's home directory)
-FILE_TO_PATCH="/home/[user]/tensorflow/third_party/gpus/crosstool/CROSSTOOL"
-awk '/cxx_builtin_include_directory: \"\/usr\/include/ { print ; print "  cxx_builtin_include_directory: \"\/usr\/local\/cuda-8.0\/include\" " ;next }1' $FILE_TO_PATCH 2>/dev/null 1>./patched
-cp ./patched $FILE_TO_PATCH
-rm ./patched
-
 
 # Build and Install Tensorflow
 bazel build --logging 0 -c opt --config=cuda //tensorflow/tools/pip_package:build_pip_package
@@ -391,7 +381,7 @@ function fw-delete {
    * check R studio server checksum in the installation script
    * check/improve firewall and security management
    * check email/domain name format in the installation script for Let's Encrypt
-   * Tensorflow installation : improve CROSSTOOL patch to include path to CUDA directory 
+   * Tensorflow installation : improve expect scripts to automate configuration
    * Solution to the menu display issue with R Studio Desktop / x2goClient ? (on Mac OS X ? )
    * Possibility to have a post install script to be used in OVH manager when setting up the server ?
    * redirect some install display output to some logs file and have the instalaltion a bit more cleaner at display  
