@@ -893,12 +893,12 @@ then
               echo "Build TensorFlow with CUDA GPU support" 
 
               echo 
-              FILE_TO_PATCH="/home/$user_login/tensorflow/third_party/gpus/crosstool/CROSSTOOL"
-              echo "Need to patch $FILE_TO_PATCH for missing dependency declarations with Bazel : /usr/local/cuda-8.0/include/" 
-              echo "see: https://github.com/tensorflow/tensorflow/issues/3431#issuecomment-234131699 "
-              awk '/cxx_builtin_include_directory: \"\/usr\/include/ { print ; print "  cxx_builtin_include_directory: \"\/usr\/local\/cuda-8.0\/include\" " ;next }1' $FILE_TO_PATCH 2>/dev/null 1>./patched
-              cp ./patched $FILE_TO_PATCH
-              rm ./patched
+              #FILE_TO_PATCH="/home/$user_login/tensorflow/third_party/gpus/crosstool/CROSSTOOL"
+              #echo "Need to patch $FILE_TO_PATCH for missing dependency declarations with Bazel : /usr/local/cuda-8.0/include/" 
+              #echo "see: https://github.com/tensorflow/tensorflow/issues/3431#issuecomment-234131699 "
+              #awk '/cxx_builtin_include_directory: \"\/usr\/include/ { print ; print "  cxx_builtin_include_directory: \"\/usr\/local\/cuda-8.0\/include\" " ;next }1' $FILE_TO_PATCH 2>/dev/null 1>./patched
+              #cp ./patched $FILE_TO_PATCH
+              #rm ./patched
               su - $user_login -c "cd /home/$user_login/tensorflow ; bazel build --logging 0 -c opt --config=cuda //tensorflow/tools/pip_package:build_pip_package" 
 	fi
 	su - $user_login -c "cd /home/$user_login/tensorflow ; bazel-bin/tensorflow/tools/pip_package/build_pip_package /tmp/tensorflow_pkg" 
@@ -960,11 +960,12 @@ then
         if [ -f /usr/bin/R ]
 	then
 	    echo "R language detected : installing IRkernel for Jupyter"
-	    cp $ressources/IRkernel.R /home/$user_login
-            chown $user_login:$user_group /home/$user_login/IRkernel.R
+	    cp $ressources/IRkernel.R /home/$user_login/develop
 	    chown -R $user_login:$user_group /usr/local/lib/R/site-library
-	    su - $user_login -c "Rscript /home/$user_login/IRkernel.R" 
-	    rm /home/$user_login/IRkernel.R      
+	    mkdir -p /home/$user_login/develop/.ipynb_checkpoints
+	    chown -R $user_login:$user_group /home/$user_login/develop/
+	    su - $user_login -c "Rscript /home/$user_login/develop/IRkernel.R" 
+	    rm /home/$user_login/develop/IRkernel.R      
 	fi
 else
         echo

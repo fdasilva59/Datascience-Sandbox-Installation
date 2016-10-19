@@ -15,11 +15,40 @@ fi
 
 # Begin Nginx template
 TEMPLATE_NGINX=$"
+
+# If we receive X-Forwarded-Proto, pass it through; otherwise, pass along the
+# scheme used to connect to this server
+map \$http_x_forwarded_proto \$proxy_x_forwarded_proto {
+  default \$http_x_forwarded_proto;
+  ''      \$scheme;
+}
+# If we receive Upgrade, set Connection to \"upgrade\"; otherwise, delete any
+# Connection header that may have been passed to this server
+map \$http_upgrade \$proxy_connection {
+  default upgrade;
+  '' close;
+}
+gzip_types text/plain text/css application/javascript application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
+log_format vhost '\$host \$remote_addr - \$remote_user [\$time_local] '
+                 '\"\$request\" \$status \$body_bytes_sent '
+                 '\"\$http_referer\" \"\$http_user_agent\"';
+
+# HTTP 1.1 support
+proxy_http_version 1.1;
+proxy_buffering off;
+proxy_set_header Host \$http_host;
+proxy_set_header Upgrade \$http_upgrade;
+proxy_set_header Connection \$proxy_connection;
+proxy_set_header X-Real-IP \$remote_addr;
+proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+proxy_set_header X-Forwarded-Proto \$proxy_x_forwarded_proto;
+
+
 # Port 80
 server {
          listen 80 ;
-         server_name $DOMAIN_NAME;
-         return 301 https://\$server_name$request_uri;
+         server_name \$DOMAIN_NAME;
+         return 301 https://\$server_name\$request_uri;
 }
 
 # Port 443 : access R Studio Server
@@ -97,11 +126,15 @@ server {
         }
 }
 
+# 
+upstream jupyter.deeplearning-area.xyz {
+        server jupyter.deeplearning-area.xyz ;
+}
 
 "
 # End Nginx template
 
-echo "Trying to generate nginx configuration file in /etc/nginx/sites-enabled/server"
+echo "Trying to generate nginx configuration file in /etc/nginx/sites-enabled/nginx_conf"
 if [ -d /etc/nginx/sites-enabled/ ]
 then
 	echo "$TEMPLATE_NGINX" > /etc/nginx/sites-enabled/nginx_conf
