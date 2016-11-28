@@ -5,7 +5,7 @@ clear
 echo "*******************************************************************"
 echo "*                 DataScience Sandbox Installation                *"
 echo "*                                                                 *"
-echo "* v1.1 - Sept 2016                                                *"
+echo "* v1.2 - Nov  2016                                                *"
 echo "* https://github.com/fdasilva59/Datascience-Sandbox-Installation  *"
 echo "*******************************************************************"
 echo
@@ -42,24 +42,23 @@ URL_Spark="http://apache.mirrors.ovh.net/ftp.apache.org/dist/spark/spark-2.0.1/s
 MD5_Spark="43AA7C28B9670E65CB4F395000838860"
 
 # NVIDIA drivers
-DRIVERS_INSTALL="NVIDIA-Linux-x86_64-367.57.run"
-NVIDIA_VERSION="367.57"
+DRIVERS_INSTALL="NVIDIA-Linux-x86_64-375.20.run"
+NVIDIA_VERSION="375.20"
 CUDA_INSTALL="cuda_8.0.44_linux.run"
 #CUDA_PATCH="cuda_8.0.27.1_linux.run"
 CUDNN_INSTALL="cudnn-8.0-linux-x64-v5.1.tgz"
 
 # TensorFlow version (tag)
 #TF_TAG="v0.10.0rc0"
-TF_TAG="v0.11.0rc0"
+TF_TAG="v0.11.0"
 
 # RStudio
 CRAN_MIRROR="https://mirror.ibcp.fr/pub/CRAN/bin/linux/ubuntu trusty/" 
-RSTUDIO_FILE="rstudio-0.99.903-amd64-debian.tar.gz"
-RSTUDIO_URL="https://download1.rstudio.org/rstudio-0.99.903-amd64-debian.tar.gz"
-RSTUDIO_DIR="rstudio-0.99.903"
-RSTUDIO_SERVER_FILE="rstudio-server-0.99.903-amd64.deb"
-RSTUDIO_SERVER_URL="https://download2.rstudio.org/rstudio-server-0.99.903-amd64.deb"
-
+RSTUDIO_FILE="rstudio-1.0.44-amd64-debian.tar.gz"
+RSTUDIO_URL="https://download1.rstudio.org/rstudio-1.0.44-amd64-debian.tar.gz"
+RSTUDIO_DIR="rstudio-1.0.44-amd64"
+RSTUDIO_SERVER_FILE="rstudio-server-1.0.44-amd64.deb"
+RSTUDIO_SERVER_URL="https://download2.rstudio.org/rstudio-server-1.0.44-amd64.deb"
 
 # default script parameters
 TF=false
@@ -616,6 +615,10 @@ then
 				echo "Trying to generate a Let's Encrypt SSL certificate for rstudio sub-domain : rstudio.$dn"
 				/root/certbot-auto/certbot-auto certonly -d rstudio.$dn --standalone  --noninteractive --agree-tos --email $email_address
 			fi
+                        if ($TF) then
+                                echo "Trying to generate a Let's Encrypt SSL certificate for tensorboard sub-domain : tensorboard.$dn"
+                                /root/certbot-auto/certbot-auto certonly -d tensorboard.$dn --standalone  --noninteractive --agree-tos --email $email_address
+                        fi
 			if ($HADOOP) then
 				echo "Trying to generate a Let's Encrypt SSL certificate for sub-domains : hadoop.$dn cluster.$dn jobs.$dn" 
 				/root/certbot-auto/certbot-auto certonly -d hdfs.$dn --standalone  --noninteractive --agree-tos --email $email_address
@@ -651,7 +654,7 @@ then
                         echo "Installing Nginx to manage the SSL accesses" 
                         apt-get -y -q=2 install nginx
 	                
-			# Test and Enable teh nginx configuration
+			# Test and Enable the nginx configuration
         		echo "Testing and Reloading Nginx congiguration (Give SSL access through proxy to R Studio Server and Hadoop/Spark admin pages)"
                         nginx -t
 	                service nginx restart
@@ -665,7 +668,7 @@ then
 			# (The first IP address that has succeeded to connect to this server via ssh as root )
 			ip=$(sudo grep -e "^.*Accepted.*$(whoami).* ssh2$" /var/log/auth.log  | head -1 | cut -d" " -f11)
                         echo "Opening the firewall on port 80 and 443 for your remote IP address $ip"
-			ufw allow proto tcp from $ip to any port 80
+			#ufw allow proto tcp from $ip to any port 80
 			ufw allow proto tcp from $ip to any port 443
 	                ufw reload
                         ufw status
@@ -987,7 +990,5 @@ case $yn in
    [Yy]* ) echo "Going for reboot..." ; reboot ;;
        * ) exit ;;
 esac
-
-
 
 
