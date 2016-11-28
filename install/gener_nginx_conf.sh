@@ -43,13 +43,21 @@ proxy_set_header X-Real-IP \$remote_addr;
 proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
 proxy_set_header X-Forwarded-Proto \$proxy_x_forwarded_proto;
 
-
-# Port 80
+# Port 443 : access TensorBoard
 server {
-         listen 80 ;
-         server_name \$DOMAIN_NAME;
-         return 301 https://\$server_name\$request_uri;
+        listen 443 ssl; 
+        ssl_certificate /etc/letsencrypt/live/tensorboard.$DOMAIN_NAME/cert.pem;
+        ssl_certificate_key /etc/letsencrypt/live/tensorboard.$DOMAIN_NAME/privkey.pem;
+        ssl_protocols  TLSv1.2;
+
+        server_name tensorboard.$DOMAIN_NAME ;
+        
+        #Proxy
+        location / {
+                proxy_pass http://localhost:6006;
+        }
 }
+
 
 # Port 443 : access R Studio Server
 server {
@@ -126,10 +134,15 @@ server {
         }
 }
 
-# 
-upstream jupyter.deeplearning-area.xyz {
-        server jupyter.deeplearning-area.xyz ;
+# Upstreams
+upstream jupyter.$DOMAIN_NAME {
+        server jupyter.$DOMAIN_NAME ;
 }
+
+upstream cluster.$DOMAIN_NAME {
+        server cluster.$DOMAIN_NAME ;
+}
+
 
 "
 # End Nginx template
