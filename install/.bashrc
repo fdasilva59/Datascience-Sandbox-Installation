@@ -155,8 +155,8 @@ fi
 function fw-allow {
 	# Find the IP address of the remote SSH connecction to open the firewall
 	ip=$(sudo grep -e "^.*Accepted.*$(whoami).* ssh2$" /var/log/auth.log  | tail -1 | cut -d" " -f11)
-	echo "Opening the firewall on port 80 and 443 for your remote IP address $ip"
-	sudo ufw allow proto tcp from $ip to any port 80
+	echo "Opening the firewall on port 443 for your remote IP address $ip"
+	#sudo ufw allow proto tcp from $ip to any port 80
 	sudo ufw allow proto tcp from $ip to any port 443
 	sudo ufw reload
 	sudo ufw status
@@ -168,15 +168,15 @@ function fw-delete {
         if [ -z $FIREWALL_PUPLIC_IP_ALLOWED ] 
         then
 		# is there a known IP address that has opened the firewall ? If so, use it to close the firewall
-                echo "Trying to close the firewall on port 80 and 443 for your remote IP address $FIREWALL_PUPLIC_IP_ALLOWED"
-		sudo ufw delete allow proto tcp from $FIREWALL_PUPLIC_IP_ALLOWED to any port 80
+                echo "Trying to close the firewall on port 443 for your remote IP address $FIREWALL_PUPLIC_IP_ALLOWED"
+		#sudo ufw delete allow proto tcp from $FIREWALL_PUPLIC_IP_ALLOWED to any port 80
         	sudo ufw delete allow proto tcp from $FIREWALL_PUPLIC_IP_ALLOWED to any port 443
  		set -u $FIREWALL_PUPLIC_IP_ALLOWED
 	else
         	# Find the IP address of my remote SSH connecction to try to close the firewall    	
 		ip=$(sudo grep -e "^.*Accepted.*$(whoami).* ssh2$" /var/log/auth.log  | tail -1 | cut -d" " -f11)
-		echo "Closing the firewall on port 80 and 443 for your remote IP address $ip"
-        	sudo ufw delete allow proto tcp from $ip to any port 80
+		echo "Closing the firewall on port 443 for your remote IP address $ip"
+        	#sudo ufw delete allow proto tcp from $ip to any port 80
         	sudo ufw delete allow proto tcp from $ip to any port 443
 	fi
         sudo ufw reload
@@ -207,7 +207,7 @@ function jp-start {
 	echo "Starting Jupyter notebook" 
 	unset XDG_RUNTIME_DIR
 	cd /home/hduser/develop
-	jupyter notebook --no-browser > /dev/null 2>&1 &
+	jupyter notebook --no-browser > ~/develop/jupyter.log 2>&1 &
 }
 
 function jp-stop {
