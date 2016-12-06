@@ -14,7 +14,7 @@ From a fresh installation of Ubuntu,
 
 - update ubuntu, setup a firewall, create a user, ...
 - provide an option to setup a **Nvidia Pascal GTX1080** on Ubuntu 14.04 (Install drivers + cuda 8.0) 
-- provide an option to install (compile sources) **Tensorflow r0.11RC (with or without Nvidia GPU support)** 
+- provide an option to install (compile sources) **Tensorflow 0.12.0-rc0 (with or without Nvidia GPU support)** 
 - provide an option to install **Torch** 
 - provide an option to install **Hadoop 2.7 / Spark 2.0** as a Mono-cluster
 - install some tools like x2go server to be able to open program like Firefox or R Studio through a ssh remote connection
@@ -125,7 +125,7 @@ you can check that the Nvidia drivers are correctly installed by running this co
 $ nvidia-smi 
       
 +-----------------------------------------------------------------------------+
-| NVIDIA-SMI 367.57                 Driver Version: 367.57                    |
+| NVIDIA-SMI 375.20                 Driver Version: 375.20                    |
 |-------------------------------+----------------------+----------------------+
 | GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
 | Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
@@ -168,7 +168,7 @@ apt-get -y  install oracle-java8-installer
 apt-get -y  install linux-headers-$(uname -r)
 
 # Install Nvidia GTX1080 driver
-./NVIDIA-Linux-x86_64-367.57.run -a -s
+./NVIDIA-Linux-x86_64-375.20.run -a -s
 
 # Install CUDA 8.0 
 ./cuda_8.0.44_linux.run  --toolkit --samples --samplespath=/usr/local/cuda-8.0/samples --override --silent
@@ -191,7 +191,7 @@ apt-get -y  install bazel
 ########  With developer/user account (not root) in home directory :
 
 # clone the Tensorflow source
-git clone --branch v0.11.0rc0 https://github.com/tensorflow/tensorflow
+git clone --branch 0.12.0-rc0 https://github.com/tensorflow/tensorflow
 cd tensorflow
 
 # Configure Tensorflow
@@ -209,6 +209,9 @@ cd tensorflow
 
 # Please input the desired Python library path to use.  Default is [/usr/local/lib/python2.7/dist-packages]
 #####-- ANSWER --> use default /usr/lib/python2.7/dist-packages 
+
+# Do you wish to build TensorFlow with OpenCL support? [y/N]
+#####-- ANSWER --> use default
 
 # Do you wish to build TensorFlow with GPU support? \[y/N\]:
 ######-- ANSWER --> y
