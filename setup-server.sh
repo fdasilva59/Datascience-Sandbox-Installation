@@ -50,7 +50,7 @@ CUDNN_INSTALL="cudnn-8.0-linux-x64-v5.1.tgz"
 
 # TensorFlow version (tag)
 #TF_TAG="v0.10.0rc0"
-TF_TAG="v0.11.0"
+TF_TAG="0.12.0-rc0"
 
 # RStudio
 CRAN_MIRROR="https://mirror.ibcp.fr/pub/CRAN/bin/linux/ubuntu trusty/" 
