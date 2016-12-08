@@ -49,10 +49,10 @@ expect -re "(.*Do you wish to build TensorFlow with Google Cloud Platform suppor
 send -- "N\r"
 expect -re "(.*Do you wish to build TensorFlow with Hadoop File System support.*N. )"
 send -- "N\r"
-expect -re "(.*Please input the desired Python library path to use.*]\r)"
+expect -re "(.*Please input the desired Python library path to use.*. )"
 send -- "/usr/lib/python2.7/dist-packages\r"
-expect -re "(.*Do you wish to build TensorFlow with OpenCL support.*]\r)"
+expect -re "(.*Do you wish to build TensorFlow with OpenCL support.*. )"
 send -- "N\r"
-expect -re "(.*Do you wish to build TensorFlow with GPU support.*N.\r)"
+expect -re "(.*Do you wish to build TensorFlow with GPU support.*. )"
 send -- "N\r"
 expect eof
